@@ -12,7 +12,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { AISwitch } from "./ai-switch";
 
 export function DateWithAI({ date: initialDate }: { date: Date }) {
   const [date, setDate] = React.useState<Date | undefined>(initialDate);
@@ -41,7 +40,6 @@ export function DateWithAI({ date: initialDate }: { date: Date }) {
           />
         </PopoverContent>
       </Popover>
-      <AISwitch />
     </div>
   );
 }
