@@ -85,9 +85,9 @@ export default function PatientDetailPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <header className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Avatar className="h-20 w-20">
+          <Avatar className="h-24 w-24">
             <AvatarImage src={patient.avatarUrl} alt={patient.name} />
             <AvatarFallback>{patient.name.charAt(0)}</AvatarFallback>
           </Avatar>
@@ -96,27 +96,31 @@ export default function PatientDetailPage() {
             <p className="text-muted-foreground">Patient ID: {patient.patientId}</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-end gap-2 w-full sm:w-auto">
-          <Button variant="destructive" className="w-full">
-            <AlertCircle className="mr-2 h-4 w-4" />
-            Risk Analysis
-          </Button>
-          <Button variant="outline" className="w-full">
-            <FileText className="mr-2 h-4 w-4" />
-            Generate Summary
-          </Button>
-          <Button variant="outline" className="w-full">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Chat with AI
-          </Button>
-          <Button className="w-full">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add New Record
-          </Button>
-          <Button className="w-full col-span-2 sm:col-auto">
-            <Upload className="mr-2 h-4 w-4" />
-            Upload Lab Report
-          </Button>
+        <div className="flex items-start gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="destructive">
+              <AlertCircle className="mr-2 h-4 w-4" />
+              Risk Analysis
+            </Button>
+            <Button variant="outline">
+              <FileText className="mr-2 h-4 w-4" />
+              Generate Summary
+            </Button>
+            <Button variant="outline">
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Chat with AI
+            </Button>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add New Record
+            </Button>
+            <Button>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Lab Report
+            </Button>
+          </div>
         </div>
       </header>
 
