@@ -7,6 +7,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function ThemeToggle() {
   const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <Tabs value={theme} onValueChange={setTheme}>
