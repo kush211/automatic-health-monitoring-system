@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Stethoscope } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { LoginForm } from "@/components/auth/login-form";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function LoginPage() {
   const loginBg = PlaceHolderImages.find(
@@ -23,10 +24,11 @@ export default function LoginPage() {
           <Stethoscope className="h-8 w-8" />
           <h1 className="text-xl font-semibold text-white">HealthHub Rural</h1>
         </div>
-         <div className="absolute top-8 right-8">
-          <Link href="#" className="text-sm font-medium text-white">
+        <div className="absolute top-8 right-8 flex items-center gap-4">
+          <Link href="#" className="text-sm font-medium text-white hover:underline">
             Admin
           </Link>
+          <ThemeToggle />
         </div>
         <div className="absolute bottom-8 left-8">
             <div className="max-w-md">
