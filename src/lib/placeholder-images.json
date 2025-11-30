@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "login-background",
-      "description": "Doctor's hands typing on a laptop with a stethoscope nearby.",
-      "imageUrl": "https://images.unsplash.com/photo-1584515933487-779824d29309?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2N0b3IlMjBsYXB0b3B8ZW58MHx8fHwxNzE2NDkxODU4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "doctor laptop"
+      "description": "A doctor in a modern hospital setting, smiling and looking at a tablet.",
+      "imageUrl": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2N0b3IlMjB0YWJsZXR8ZW58MHx8fHwxNzE3MTc0MTg1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "doctor tablet"
     }
   ]
 }
