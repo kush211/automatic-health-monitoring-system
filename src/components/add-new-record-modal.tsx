@@ -172,7 +172,7 @@ export function AddNewRecordModal({
           </DialogDescription>
         </DialogHeader>
         <Separator />
-        <ScrollArea className="flex-1 pr-6 -mr-6">
+        <ScrollArea className="flex-1 min-h-0 pr-6 -mr-6">
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="diagnosis" className="text-right">
