@@ -37,7 +37,7 @@ import {
   FileStack,
 } from 'lucide-react';
 import { patients } from '@/lib/data';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import Link from 'next/link';
 
 const medicalHistory = [
@@ -71,11 +71,10 @@ const labReports = [
   },
 ];
 
-export default function PatientDetailPage({
-  params: { id },
-}: {
-  params: { id: string };
-}) {
+export default function PatientDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
+
   const patient = patients.find(
     (p) => p.patientId === `PID-${id}-2024`
   );
