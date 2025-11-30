@@ -41,8 +41,11 @@ import {
 } from 'lucide-react';
 import { patients } from '@/lib/data';
 import { RiskAnalysisModal } from '@/components/risk-analysis-modal';
+import { SummaryModal } from '@/components/summary-modal';
 import type { AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis';
 import { aiRiskAnalysis } from '@/ai/flows/ai-risk-analysis';
+import { generatePatientSummary } from '@/ai/flows/generate-patient-summary';
+import type { GeneratePatientSummaryOutput } from '@/ai/flows/generate-patient-summary';
 
 const medicalHistory = [
   {
@@ -78,9 +81,13 @@ const labReports = [
 export default function PatientDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AIRiskAnalysisOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isRiskLoading, setIsRiskLoading] = useState(false);
+
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const [summaryResult, setSummaryResult] = useState<GeneratePatientSummaryOutput | null>(null);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
   const patient = patients.find(
     (p) => p.patientId === `PID-${id}-2024`
@@ -90,16 +97,7 @@ export default function PatientDetailPage() {
     notFound();
   }
 
-  const handleRiskAnalysis = async (forceRegenerate = false) => {
-    if (analysisResult && !forceRegenerate) {
-      setIsModalOpen(true);
-      return;
-    }
-
-    setIsModalOpen(true);
-    setIsLoading(true);
-
-    const mockMedicalHistory = `
+  const mockMedicalHistory = `
       Patient Name: ${patient.name}
       Date of Birth: ${patient.dob}
       Gender: ${patient.gender}
@@ -109,6 +107,15 @@ export default function PatientDetailPage() {
       Lab Reports: Lipid Profile - Total Cholesterol 240 mg/dL, LDL 160 mg/dL.
     `;
 
+  const handleRiskAnalysis = async (forceRegenerate = false) => {
+    if (analysisResult && !forceRegenerate) {
+      setIsRiskModalOpen(true);
+      return;
+    }
+
+    setIsRiskModalOpen(true);
+    setIsRiskLoading(true);
+
     try {
       const result = await aiRiskAnalysis({
         patientMedicalHistory: mockMedicalHistory,
@@ -117,9 +124,29 @@ export default function PatientDetailPage() {
       setAnalysisResult(result);
     } catch (error) {
       console.error("AI Risk Analysis failed:", error);
-      // Optionally set an error state to show in the modal
     } finally {
-      setIsLoading(false);
+      setIsRiskLoading(false);
+    }
+  };
+
+  const handleGenerateSummary = async (forceRegenerate = false) => {
+    if (summaryResult && !forceRegenerate) {
+      setIsSummaryModalOpen(true);
+      return;
+    }
+
+    setIsSummaryModalOpen(true);
+    setIsSummaryLoading(true);
+
+    try {
+      const result = await generatePatientSummary({
+        patientHistory: mockMedicalHistory,
+      });
+      setSummaryResult(result);
+    } catch (error) {
+      console.error("AI Summary Generation failed:", error);
+    } finally {
+      setIsSummaryLoading(false);
     }
   };
 
@@ -139,13 +166,13 @@ export default function PatientDetailPage() {
         </div>
         <div className="flex items-start gap-2">
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="destructive" onClick={() => handleRiskAnalysis()} disabled={isLoading}>
+            <Button variant="destructive" onClick={() => handleRiskAnalysis()} disabled={isRiskLoading}>
               <AlertCircle className="mr-2 h-4 w-4" />
-              {isLoading ? 'Analyzing...' : 'Risk Analysis'}
+              {isRiskLoading ? 'Analyzing...' : 'Risk Analysis'}
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => handleGenerateSummary()} disabled={isSummaryLoading}>
               <FileText className="mr-2 h-4 w-4" />
-              Generate Summary
+              {isSummaryLoading ? 'Generating...' : 'Generate Summary'}
             </Button>
             <Button variant="outline">
               <MessageSquare className="mr-2 h-4 w-4" />
@@ -282,12 +309,22 @@ export default function PatientDetailPage() {
       </div>
       {patient && (
         <RiskAnalysisModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          isOpen={isRiskModalOpen}
+          onClose={() => setIsRiskModalOpen(false)}
           analysisResult={analysisResult}
           patientName={patient.name}
-          isLoading={isLoading}
+          isLoading={isRiskLoading}
           onRegenerate={() => handleRiskAnalysis(true)}
+        />
+      )}
+      {patient && (
+        <SummaryModal
+          isOpen={isSummaryModalOpen}
+          onClose={() => setIsSummaryModalOpen(false)}
+          summaryResult={summaryResult}
+          patientName={patient.name}
+          isLoading={isSummaryLoading}
+          onRegenerate={() => handleGenerateSummary(true)}
         />
       )}
     </div>
