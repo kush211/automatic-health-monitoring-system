@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import {
   Dialog,
   DialogContent,
@@ -34,10 +35,39 @@ export function DischargeSummaryModal({
 }: DischargeSummaryModalProps) {
   const summaryRef = useRef(null);
 
-  const handlePrint = useReactToPrint({
-    content: () => summaryRef.current,
-    documentTitle: `Discharge-Summary-${summary?.patientName?.replace(' ', '-') || 'Patient'}`,
-  });
+  const handlePrint = () => {
+    if (summaryRef.current) {
+      html2canvas(summaryRef.current, { scale: 2 }).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        const width = pdfWidth;
+        const height = width / ratio;
+
+        // Check if content fits on one page, otherwise add new pages
+        let position = 0;
+        const pageHeight = pdf.internal.pageSize.height;
+        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+        let heightLeft = imgHeight;
+
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.save(`Discharge-Summary-${summary?.patientName?.replace(' ', '-') || 'Patient'}.pdf`);
+      });
+    }
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -55,7 +85,7 @@ export function DischargeSummaryModal({
         <Separator />
         
         <ScrollArea className="flex-1 min-h-0 pr-6 -mr-6">
-          <div ref={summaryRef} className="p-4 sm:p-6 printable-area">
+          <div ref={summaryRef} className="p-4 sm:p-6 printable-area bg-background">
             {isLoading ? (
               <div className="space-y-6">
                  <Skeleton className="h-8 w-3/4" />
@@ -126,7 +156,7 @@ export function DischargeSummaryModal({
             disabled={isLoading || !summary}
           >
             <Printer className="mr-2 h-4 w-4" />
-            Print Summary
+            Save as PDF
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
