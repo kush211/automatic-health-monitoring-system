@@ -42,6 +42,7 @@ import {
 import { patients } from '@/lib/data';
 import { RiskAnalysisModal } from '@/components/risk-analysis-modal';
 import { SummaryModal } from '@/components/summary-modal';
+import { ChatModal } from '@/components/chat-modal';
 import type { AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis';
 import { aiRiskAnalysis } from '@/ai/flows/ai-risk-analysis';
 import { generatePatientSummary } from '@/ai/flows/generate-patient-summary';
@@ -88,6 +89,8 @@ export default function PatientDetailPage() {
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [summaryResult, setSummaryResult] = useState<GeneratePatientSummaryOutput | null>(null);
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
 
   const patient = patients.find(
     (p) => p.patientId === `PID-${id}-2024`
@@ -174,7 +177,7 @@ export default function PatientDetailPage() {
               <FileText className="mr-2 h-4 w-4" />
               {isSummaryLoading ? 'Generating...' : 'Generate Summary'}
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => setIsChatModalOpen(true)}>
               <MessageSquare className="mr-2 h-4 w-4" />
               Chat with AI
             </Button>
@@ -325,6 +328,14 @@ export default function PatientDetailPage() {
           patientName={patient.name}
           isLoading={isSummaryLoading}
           onRegenerate={() => handleGenerateSummary(true)}
+        />
+      )}
+      {patient && (
+        <ChatModal
+          isOpen={isChatModalOpen}
+          onClose={() => setIsChatModalOpen(false)}
+          patientId={patient.patientId}
+          patientName={patient.name}
         />
       )}
     </div>
