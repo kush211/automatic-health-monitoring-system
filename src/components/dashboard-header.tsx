@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/user-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function DashboardHeader() {
   return (
@@ -30,6 +31,7 @@ export function DashboardHeader() {
           className="w-full rounded-lg bg-card pl-8 md:w-[200px] lg:w-[320px]"
         />
       </div>
+      <ThemeToggle />
       <UserNav />
     </header>
   );
