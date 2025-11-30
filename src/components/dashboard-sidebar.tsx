@@ -57,16 +57,16 @@ export function DashboardSidebar() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} passHref legacyBehavior>
+              <Link href={item.href}>
                 <SidebarMenuButton
                   isActive={isActive(item.href)}
                   tooltip={item.label}
                   asChild
                 >
-                  <a>
+                  <>
                     <item.icon />
                     <span>{item.label}</span>
-                  </a>
+                  </>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -77,22 +77,22 @@ export function DashboardSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/settings" passHref legacyBehavior>
+            <Link href="/settings">
               <SidebarMenuButton isActive={isActive('/settings')} tooltip="Settings" asChild>
-                <a>
+                <>
                   <Settings />
                   <span>Settings</span>
-                </a>
+                </>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
            <SidebarMenuItem>
-            <Link href="/login" passHref legacyBehavior>
+            <Link href="/login">
               <SidebarMenuButton tooltip="Logout" asChild>
-                <a>
+                <>
                   <LogOut />
                   <span>Logout</span>
-                </a>
+                </>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
