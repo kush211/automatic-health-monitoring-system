@@ -47,6 +47,7 @@ import { aiRiskAnalysis } from '@/ai/flows/ai-risk-analysis';
 import { generatePatientSummary } from '@/ai/flows/generate-patient-summary';
 import type { GeneratePatientSummaryOutput } from '@/ai/flows/generate-patient-summary';
 import { AddNewRecordModal } from '@/components/add-new-record-modal';
+import { PrescriptionModal } from '@/components/prescription-modal';
 
 const initialMedicalHistory = [
   {
@@ -54,24 +55,27 @@ const initialMedicalHistory = [
     diagnosis: 'Hypertension Check-up',
     doctor: 'Dr. Priya Sharma',
     prescription: true,
+    prescriptionDetails: 'Amlodipine 5mg, 1 tablet daily',
     labReports: 1,
-    notes: '',
+    notes: 'Patient reports feeling well. BP is stable.',
   },
   {
     date: '15/03/2024',
     diagnosis: 'Minor Laceration',
     doctor: 'Dr. Vikram Rao',
     prescription: false,
+    prescriptionDetails: '',
     labReports: 0,
-    notes: '',
+    notes: 'Cleaned and dressed wound on left forearm.',
   },
   {
     date: '20/11/2023',
     diagnosis: 'Viral Fever',
     doctor: 'Dr. Priya Sharma',
     prescription: true,
+    prescriptionDetails: 'Paracetamol 500mg, as needed for fever.',
     labReports: 0,
-    notes: '',
+    notes: 'Advised rest and hydration.',
   },
 ];
 
@@ -81,6 +85,8 @@ const labReports = [
     reportName: 'Lipid Profile',
   },
 ];
+
+type MedicalRecord = typeof initialMedicalHistory[0];
 
 export default function PatientDetailPage() {
   const params = useParams();
@@ -96,6 +102,9 @@ export default function PatientDetailPage() {
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
   const [medicalHistory, setMedicalHistory] = useState(initialMedicalHistory);
+  
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState<MedicalRecord | null>(null);
 
   const patient = patients.find(
     (p) => p.patientId === `PID-${id}-2024`
@@ -162,6 +171,10 @@ export default function PatientDetailPage() {
     setMedicalHistory(prevHistory => [newRecord, ...prevHistory]);
   };
 
+  const handleViewPrescription = (record: MedicalRecord) => {
+    setSelectedPrescription(record);
+    setIsPrescriptionModalOpen(true);
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -291,7 +304,7 @@ export default function PatientDetailPage() {
                       <TableCell>{record.doctor}</TableCell>
                       <TableCell>
                         {record.prescription ? (
-                          <Button variant="link" className="p-0 h-auto">
+                          <Button variant="link" className="p-0 h-auto" onClick={() => handleViewPrescription(record)}>
                             <LinkIcon className="mr-2 h-4 w-4" />
                             View
                           </Button>
@@ -355,6 +368,14 @@ export default function PatientDetailPage() {
           patientId={patient.patientId}
           patientName={patient.name}
           onRecordAdded={handleNewRecordAdded}
+        />
+      )}
+      {patient && selectedPrescription && (
+        <PrescriptionModal
+          isOpen={isPrescriptionModalOpen}
+          onClose={() => setIsPrescriptionModalOpen(false)}
+          patientName={patient.name}
+          record={selectedPrescription}
         />
       )}
     </div>

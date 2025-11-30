@@ -38,6 +38,7 @@ export function AddNewRecordModal({
   const [diagnosis, setDiagnosis] = useState("");
   const [notes, setNotes] = useState("");
   const [prescriptionIssued, setPrescriptionIssued] = useState(false);
+  const [prescriptionDetails, setPrescriptionDetails] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
@@ -46,6 +47,15 @@ export function AddNewRecordModal({
       toast({
         title: "Missing Information",
         description: "Please fill in the Diagnosis field.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (prescriptionIssued && !prescriptionDetails) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide prescription details.",
         variant: "destructive",
       });
       return;
@@ -61,6 +71,7 @@ export function AddNewRecordModal({
       doctor: demoUser.name,
       notes,
       prescription: prescriptionIssued,
+      prescriptionDetails: prescriptionIssued ? prescriptionDetails : "",
       labReports: 0,
     };
 
@@ -71,6 +82,7 @@ export function AddNewRecordModal({
     setDiagnosis("");
     setNotes("");
     setPrescriptionIssued(false);
+    setPrescriptionDetails("");
 
     onClose();
     toast({
@@ -81,7 +93,7 @@ export function AddNewRecordModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FilePlus className="h-6 w-6 text-primary" />
@@ -104,8 +116,8 @@ export function AddNewRecordModal({
               className="col-span-3"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="notes" className="text-right">
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="notes" className="text-right pt-2">
               Notes
             </Label>
             <Textarea
@@ -113,6 +125,7 @@ export function AddNewRecordModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="col-span-3"
+              rows={3}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -125,6 +138,21 @@ export function AddNewRecordModal({
               onCheckedChange={setPrescriptionIssued}
             />
           </div>
+          {prescriptionIssued && (
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="prescription-details" className="text-right pt-2">
+                Details
+              </Label>
+              <Textarea
+                id="prescription-details"
+                value={prescriptionDetails}
+                onChange={(e) => setPrescriptionDetails(e.target.value)}
+                className="col-span-3"
+                placeholder="e.g., Paracetamol 500mg, 1 tablet twice a day for 3 days"
+                rows={3}
+              />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isSaving}>
