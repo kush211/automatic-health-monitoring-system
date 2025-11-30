@@ -49,6 +49,7 @@ import type { GeneratePatientSummaryOutput } from '@/ai/flows/generate-patient-s
 import { AddNewRecordModal } from '@/components/add-new-record-modal';
 import { PrescriptionModal } from '@/components/prescription-modal';
 import { UploadLabReportModal } from '@/components/upload-lab-report-modal';
+import { ViewLabReportModal } from '@/components/view-lab-report-modal';
 
 const initialMedicalHistory = [
   {
@@ -109,6 +110,9 @@ export default function PatientDetailPage() {
   
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState<MedicalRecord | null>(null);
+
+  const [isViewReportModalOpen, setIsViewReportModalOpen] = useState(false);
+  const [selectedLabReport, setSelectedLabReport] = useState<LabReport | null>(null);
 
   const patient = patients.find(
     (p) => p.patientId === `PID-${id}-2024`
@@ -182,6 +186,11 @@ export default function PatientDetailPage() {
   const handleViewPrescription = (record: MedicalRecord) => {
     setSelectedPrescription(record);
     setIsPrescriptionModalOpen(true);
+  };
+
+  const handleViewLabReport = (report: LabReport) => {
+    setSelectedLabReport(report);
+    setIsViewReportModalOpen(true);
   };
 
   return (
@@ -272,7 +281,7 @@ export default function PatientDetailPage() {
                       <TableCell>{new Date(report.date).toLocaleDateString('en-GB')}</TableCell>
                       <TableCell>{report.reportName}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => handleViewLabReport(report)}>
                           <Download className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -393,6 +402,14 @@ export default function PatientDetailPage() {
           onClose={() => setIsPrescriptionModalOpen(false)}
           patientName={patient.name}
           record={selectedPrescription}
+        />
+      )}
+      {patient && selectedLabReport && (
+        <ViewLabReportModal
+          isOpen={isViewReportModalOpen}
+          onClose={() => setIsViewReportModalOpen(false)}
+          patientName={patient.name}
+          report={selectedLabReport}
         />
       )}
     </div>
