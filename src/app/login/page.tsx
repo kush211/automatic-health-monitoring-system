@@ -21,7 +21,7 @@ export default function LoginPage() {
         />
         <div className="absolute top-8 left-8 flex items-center gap-2">
           <Stethoscope className="h-8 w-8" />
-          <h1 className="text-2xl font-bold font-headline">HealthHub Rural</h1>
+          <h1 className="text-2xl font-bold">HealthHub Rural</h1>
         </div>
          <div className="absolute top-8 right-8">
           <Link href="#" className="text-sm font-medium">

@@ -28,7 +28,7 @@ export default function DashboardPage() {
   return (
     <>
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight font-headline">Welcome back, Dr. Aarav!</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Welcome back, Dr. Aarav!</h2>
       </div>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         <KpiCard

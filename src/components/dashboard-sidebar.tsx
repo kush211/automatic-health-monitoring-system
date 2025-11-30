@@ -47,7 +47,7 @@ export function DashboardSidebar() {
         <div className="flex items-center gap-2">
           <Stethoscope className="w-8 h-8 text-primary" />
           <div className="flex flex-col">
-            <h2 className="text-lg font-semibold font-headline tracking-tighter">
+            <h2 className="text-lg font-semibold tracking-tighter">
               HealthHub Rural
             </h2>
           </div>
