@@ -29,7 +29,7 @@ export function LoginForm() {
   };
 
   const renderTabContent = (roleName: UserRole) => (
-    <TabsContent value={roleName}>
+    <TabsContent value={roleName} className="mt-4">
       <form onSubmit={handleLogin} className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor={`${roleName}-email`}>Email</Label>
@@ -38,22 +38,14 @@ export function LoginForm() {
             type="email"
             placeholder="m@example.com"
             required
-            defaultValue="demo@healthhub.dev"
+            defaultValue="priya.sharma@example.com"
           />
         </div>
         <div className="grid gap-2">
-          <div className="flex items-center">
-            <Label htmlFor={`${roleName}-password`}>Password</Label>
-            <a
-              href="#"
-              className="ml-auto inline-block text-sm underline"
-            >
-              Forgot your password?
-            </a>
-          </div>
+          <Label htmlFor={`${roleName}-password`}>Password</Label>
           <Input id={`${roleName}-password`} type="password" required defaultValue="password" />
         </div>
-        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground mt-2">
           Login as {roleName}
         </Button>
       </form>
@@ -62,10 +54,10 @@ export function LoginForm() {
 
   return (
     <Tabs defaultValue="Doctor" className="w-full" onValueChange={handleRoleChange}>
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-3 bg-muted">
         <TabsTrigger value="Doctor">Doctor</TabsTrigger>
         <TabsTrigger value="Nurse">Nurse</TabsTrigger>
-        <TabsTrigger value="Receptionist">Desk</TabsTrigger>
+        <TabsTrigger value="Receptionist">Receptionist</TabsTrigger>
       </TabsList>
       {renderTabContent("Doctor")}
       {renderTabContent("Nurse")}

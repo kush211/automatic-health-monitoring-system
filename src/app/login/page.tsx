@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { Stethoscope, Quote } from "lucide-react";
+import Link from "next/link";
+import { Stethoscope } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { LoginForm } from "@/components/auth/login-form";
 
@@ -11,33 +12,35 @@ export default function LoginPage() {
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
       <div className="relative hidden bg-muted lg:block">
+        <header className="absolute top-0 left-0 right-0 p-8 flex justify-between items-center z-10 text-white">
+            <div className="flex items-center gap-2">
+                <Stethoscope className="h-8 w-8 text-white" />
+                <h1 className="text-2xl font-bold font-headline">HealthHub Rural</h1>
+            </div>
+            <Link href="#" className="text-sm font-medium hover:underline">Admin</Link>
+        </header>
         <Image
           src={loginBg?.imageUrl || "/placeholder.svg"}
           alt={loginBg?.description || "Login background image"}
           data-ai-hint={loginBg?.imageHint}
           fill
-          className="object-cover"
+          className="object-cover brightness-75"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-0 left-0 p-8 text-white">
-            <div className="bg-black/50 p-6 rounded-lg backdrop-blur-sm">
-                <Quote className="w-12 h-12 text-primary-foreground/50 mb-4" />
-                <blockquote className="text-xl italic font-medium">
-                    "HealthHub has been a game-changer for our rural clinic. The AI-powered insights help us prioritize cases and provide better care to our community."
+            <div className="max-w-md">
+                <blockquote className="text-lg italic font-medium">
+                    "This platform has revolutionized how we manage patient care in our rural facility, bringing efficiency and accuracy to the forefront."
                 </blockquote>
-                <p className="mt-4 font-semibold">— Dr. Anjali Sharma, Community Health Officer</p>
+                <p className="mt-4 font-semibold">— Dr. Priya Sharma</p>
             </div>
         </div>
       </div>
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[350px] gap-6">
+      <div className="flex items-center justify-center py-12 bg-background">
+        <div className="mx-auto grid w-[400px] gap-6 p-8 rounded-lg bg-card shadow-lg">
           <div className="grid gap-2 text-center">
-            <div className="flex items-center justify-center gap-2">
-                <Stethoscope className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold font-headline">HealthHub Rural</h1>
-            </div>
+            <h1 className="text-2xl font-bold">Doctor Access</h1>
             <p className="text-balance text-muted-foreground">
-              Automatic Patient Health Record Monitoring System
+              Enter your credentials to access the full dashboard.
             </p>
           </div>
           <LoginForm />

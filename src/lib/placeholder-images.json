@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "login-background",
-      "description": "A friendly doctor smiling at the camera in a modern clinic setting.",
-      "imageUrl": "https://images.unsplash.com/photo-1663182115688-490b3948ed31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkb2N0b3IlMjBjbGluaWN8ZW58MHx8fHwxNzY0NDc0MTg1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "doctor clinic"
+      "description": "Doctor's hands typing on a laptop with a stethoscope nearby.",
+      "imageUrl": "https://images.unsplash.com/photo-1584515933487-779824d29309?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2N0b3IlMjBsYXB0b3B8ZW58MHx8fHwxNzE2NDkxODU4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "doctor laptop"
     }
   ]
 }
