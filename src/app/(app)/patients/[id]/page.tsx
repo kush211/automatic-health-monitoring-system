@@ -1,4 +1,7 @@
 'use client';
+import { useState } from 'react';
+import { notFound, useParams } from 'next/navigation';
+import Link from 'next/link';
 import {
   Avatar,
   AvatarFallback,
@@ -37,8 +40,9 @@ import {
   FileStack,
 } from 'lucide-react';
 import { patients } from '@/lib/data';
-import { notFound, useParams } from 'next/navigation';
-import Link from 'next/link';
+import { RiskAnalysisModal } from '@/components/risk-analysis-modal';
+import type { AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis';
+import { aiRiskAnalysis } from '@/ai/flows/ai-risk-analysis';
 
 const medicalHistory = [
   {
@@ -74,6 +78,9 @@ const labReports = [
 export default function PatientDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AIRiskAnalysisOutput | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const patient = patients.find(
     (p) => p.patientId === `PID-${id}-2024`
@@ -82,6 +89,35 @@ export default function PatientDetailPage() {
   if (!patient) {
     notFound();
   }
+
+  const handleRiskAnalysis = async () => {
+    setIsModalOpen(true);
+    setIsLoading(true);
+
+    const mockMedicalHistory = `
+      Patient Name: ${patient.name}
+      Date of Birth: ${patient.dob}
+      Gender: ${patient.gender}
+      Past Medical History: Hypertension, Diabetes Mellitus.
+      Current Symptoms: Severe, crushing chest pain (10/10 intensity) radiating to the left arm and jaw. Associated symptoms include diaphoresis, shortness of breath, and nausea.
+      Vitals: BP 160/100, HR 110, RR 22, SpO2 94% on room air.
+      Lab Reports: Lipid Profile - Total Cholesterol 240 mg/dL, LDL 160 mg/dL.
+    `;
+
+    try {
+      const result = await aiRiskAnalysis({
+        patientMedicalHistory: mockMedicalHistory,
+        consentGiven: patient.consent_for_ai,
+      });
+      setAnalysisResult(result);
+    } catch (error) {
+      console.error("AI Risk Analysis failed:", error);
+      // Optionally set an error state to show in the modal
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -98,9 +134,9 @@ export default function PatientDetailPage() {
         </div>
         <div className="flex items-start gap-2">
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="destructive">
+            <Button variant="destructive" onClick={handleRiskAnalysis} disabled={isLoading}>
               <AlertCircle className="mr-2 h-4 w-4" />
-              Risk Analysis
+              {isLoading ? 'Analyzing...' : 'Risk Analysis'}
             </Button>
             <Button variant="outline">
               <FileText className="mr-2 h-4 w-4" />
@@ -239,6 +275,16 @@ export default function PatientDetailPage() {
           </Card>
         </div>
       </div>
+      {patient && (
+        <RiskAnalysisModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          analysisResult={analysisResult}
+          patientName={patient.name}
+          isLoading={isLoading}
+          onRegenerate={handleRiskAnalysis}
+        />
+      )}
     </div>
   );
 }
