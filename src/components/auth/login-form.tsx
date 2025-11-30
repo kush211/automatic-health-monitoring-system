@@ -64,6 +64,32 @@ export function LoginForm() {
             Enter your credentials to access the nurse dashboard.
           </p>
         </div>
+        <form onSubmit={handleLogin} className="grid gap-4">
+          <div className="grid gap-2 text-left">
+            <Label htmlFor="nurse-email">Email</Label>
+            <Input
+              id="nurse-email"
+              type="email"
+              placeholder="nurse@example.com"
+              required
+              defaultValue="nurse@example.com"
+              className="bg-input border-0"
+            />
+          </div>
+          <div className="grid gap-2 text-left">
+            <Label htmlFor="nurse-password">Password</Label>
+            <Input
+              id="nurse-password"
+              type="password"
+              required
+              defaultValue="password"
+              className="bg-input border-0"
+            />
+          </div>
+          <Button type="submit" className="w-full mt-2">
+            Login as Nurse
+          </Button>
+        </form>
       </TabsContent>
       <TabsContent value="receptionist">
         <div className="text-center mb-4">
@@ -72,6 +98,32 @@ export function LoginForm() {
             Enter your credentials to access the reception dashboard.
           </p>
         </div>
+        <form onSubmit={handleLogin} className="grid gap-4">
+          <div className="grid gap-2 text-left">
+            <Label htmlFor="receptionist-email">Email</Label>
+            <Input
+              id="receptionist-email"
+              type="email"
+              placeholder="receptionist@example.com"
+              required
+              defaultValue="receptionist@example.com"
+              className="bg-input border-0"
+            />
+          </div>
+          <div className="grid gap-2 text-left">
+            <Label htmlFor="receptionist-password">Password</Label>
+            <Input
+              id="receptionist-password"
+              type="password"
+              required
+              defaultValue="password"
+              className="bg-input border-0"
+            />
+          </div>
+          <Button type="submit" className="w-full mt-2">
+            Login as Receptionist
+          </Button>
+        </form>
       </TabsContent>
     </Tabs>
   );
