@@ -18,7 +18,7 @@ export function LoginForm() {
 
   return (
     <Tabs defaultValue="doctor" className="w-full" onValueChange={setActiveTab}>
-      <TabsList className="grid w-full grid-cols-3 bg-transparent mb-4">
+      <TabsList className="grid w-full grid-cols-3 bg-card mb-4 p-0">
         <TabsTrigger value="doctor">Doctor</TabsTrigger>
         <TabsTrigger value="nurse">Nurse</TabsTrigger>
         <TabsTrigger value="receptionist">Receptionist</TabsTrigger>
@@ -39,6 +39,7 @@ export function LoginForm() {
               placeholder="m@example.com"
               required
               defaultValue="priya.sharma@example.com"
+              className="bg-input border-0"
             />
           </div>
           <div className="grid gap-2 text-left">
@@ -48,6 +49,7 @@ export function LoginForm() {
               type="password" 
               required 
               defaultValue="password" 
+              className="bg-input border-0"
             />
           </div>
           <Button type="submit" className="w-full mt-2">
