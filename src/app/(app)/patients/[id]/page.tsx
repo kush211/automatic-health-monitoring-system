@@ -48,6 +48,7 @@ import { generatePatientSummary } from '@/ai/flows/generate-patient-summary';
 import type { GeneratePatientSummaryOutput } from '@/ai/flows/generate-patient-summary';
 import { AddNewRecordModal } from '@/components/add-new-record-modal';
 import { PrescriptionModal } from '@/components/prescription-modal';
+import { UploadLabReportModal } from '@/components/upload-lab-report-modal';
 
 const initialMedicalHistory = [
   {
@@ -79,7 +80,7 @@ const initialMedicalHistory = [
   },
 ];
 
-const labReports = [
+const initialLabReports = [
   {
     date: '2024-06-10',
     reportName: 'Lipid Profile',
@@ -87,6 +88,7 @@ const labReports = [
 ];
 
 type MedicalRecord = typeof initialMedicalHistory[0];
+type LabReport = typeof initialLabReports[0];
 
 export default function PatientDetailPage() {
   const params = useParams();
@@ -101,7 +103,9 @@ export default function PatientDetailPage() {
 
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
+  const [isUploadReportModalOpen, setIsUploadReportModalOpen] = useState(false);
   const [medicalHistory, setMedicalHistory] = useState(initialMedicalHistory);
+  const [labReports, setLabReports] = useState(initialLabReports);
   
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState<MedicalRecord | null>(null);
@@ -170,6 +174,10 @@ export default function PatientDetailPage() {
   const handleNewRecordAdded = (newRecord: any) => {
     setMedicalHistory(prevHistory => [newRecord, ...prevHistory]);
   };
+  
+  const handleLabReportAdded = (newReport: LabReport) => {
+    setLabReports(prevReports => [newReport, ...prevReports]);
+  };
 
   const handleViewPrescription = (record: MedicalRecord) => {
     setSelectedPrescription(record);
@@ -209,7 +217,7 @@ export default function PatientDetailPage() {
               <PlusCircle className="mr-2 h-4 w-4" />
               Add New Record
             </Button>
-            <Button>
+            <Button onClick={() => setIsUploadReportModalOpen(true)}>
               <Upload className="mr-2 h-4 w-4" />
               Upload Lab Report
             </Button>
@@ -261,7 +269,7 @@ export default function PatientDetailPage() {
                 <TableBody>
                   {labReports.map((report, index) => (
                     <TableRow key={index}>
-                      <TableCell>{report.date}</TableCell>
+                      <TableCell>{new Date(report.date).toLocaleDateString('en-GB')}</TableCell>
                       <TableCell>{report.reportName}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon">
@@ -368,6 +376,15 @@ export default function PatientDetailPage() {
           patientId={patient.patientId}
           patientName={patient.name}
           onRecordAdded={handleNewRecordAdded}
+        />
+      )}
+       {patient && (
+        <UploadLabReportModal
+          isOpen={isUploadReportModalOpen}
+          onClose={() => setIsUploadReportModalOpen(false)}
+          patientId={patient.patientId}
+          patientName={patient.name}
+          onReportAdded={handleLabReportAdded}
         />
       )}
       {patient && selectedPrescription && (
