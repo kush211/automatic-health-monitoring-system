@@ -90,7 +90,12 @@ export default function PatientDetailPage() {
     notFound();
   }
 
-  const handleRiskAnalysis = async () => {
+  const handleRiskAnalysis = async (forceRegenerate = false) => {
+    if (analysisResult && !forceRegenerate) {
+      setIsModalOpen(true);
+      return;
+    }
+
     setIsModalOpen(true);
     setIsLoading(true);
 
@@ -134,7 +139,7 @@ export default function PatientDetailPage() {
         </div>
         <div className="flex items-start gap-2">
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="destructive" onClick={handleRiskAnalysis} disabled={isLoading}>
+            <Button variant="destructive" onClick={() => handleRiskAnalysis()} disabled={isLoading}>
               <AlertCircle className="mr-2 h-4 w-4" />
               {isLoading ? 'Analyzing...' : 'Risk Analysis'}
             </Button>
@@ -282,7 +287,7 @@ export default function PatientDetailPage() {
           analysisResult={analysisResult}
           patientName={patient.name}
           isLoading={isLoading}
-          onRegenerate={handleRiskAnalysis}
+          onRegenerate={() => handleRiskAnalysis(true)}
         />
       )}
     </div>
