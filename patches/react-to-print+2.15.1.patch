@@ -1,60 +1,23 @@
 diff --git a/node_modules/react-to-print/lib/index.js b/node_modules/react-to-print/lib/index.js
-index 47481c9..0c1c1f1 100644
+index 5c165d5..5f336a1 100644
 --- a/node_modules/react-to-print/lib/index.js
 +++ b/node_modules/react-to-print/lib/index.js
-@@ -1,5 +1,5 @@
- "use strict";
--Object.defineProperty(exports, "__esModule", { value: true });
-+Object.defineProperty(exports, "__esModule", { value: true, });
- exports.useReactToPrint = void 0;
- const React = require("react");
- const react_1 = require("react");
-@@ -7,7 +7,7 @@ const shallowequal = require("shallowequal");
- const useReactToPrint = (props) => {
-     const { onBeforeGetContent, onBeforePrint, onAfterPrint, onPrintError, content, documentTitle = "", copyStyles = true, font, removeAfterPrint = false, bodyClass = "", pageStyle, nonce, } = props;
-     const [isPrinting, setIsPrinting] = react_1.useState(false);
--    const linkTotal = React.useRef(0);
-+    const linkTotal = react_1.useRef(0);
-     const linksLoaded = react_1.useRef([]);
-     const linksErrored = react_1.useRef([]);
-     const triggerRef = react_1.useRef(null);
-@@ -19,10 +19,10 @@ const useReactToPrint = (props) => {
-             return;
-         }
-         if (triggerRef.current) {
--            triggerRef.current = react_dom_1.findDOMNode(triggerRef.current);
-+            // triggerRef.current = findDOMNode(triggerRef.current); - findDOMNode is deprecated
-         }
-         return () => {
--            didUnmount.current = false;
-+            didUnmount.current = true;
-         };
-     }, []);
-     const handlePrint = react_1.useCallback(() => {
-@@ -32,7 +32,7 @@ const useReactToPrint = (props) => {
-             try {
-                 resolvedOnBeforePrint = onBeforePrint();
-             }
--            catch (error) {
-+            catch (error) { // eslint-disable-line @typescript-eslint/no-explicit-any
-                 if (onPrintError) {
-                     onPrintError("onBeforePrint", error);
+@@ -341,7 +341,7 @@ class Print extends React.Component {
+ 
+         // Some libraries, such as `react-select`, do not expose a `ref` to their internal
+         // DOM node. We can grab it by using `findDOMNode`.
+-        const content = findDOMNode(this.props.content());
++        const content = this.props.content();
+ 
+         if (content) {
+             const "printable" = this.state;
+@@ -361,7 +361,7 @@ class Print extends React.Component {
+                     return;
                  }
-@@ -43,7 +43,7 @@ const useReactToPrint = (props) => {
-             try {
-                 resolvedOnBeforeGetContent = onBeforeGetContent();
+ 
+-                const content = findDOMNode(this.props.content());
++                const content = this.props.content();
+                 this.handlePrint(content);
              }
--            catch (error) {
-+            catch (error) { // eslint-disable-line @typescript-eslint/no-explicit-any
-                 if (onPrintError) {
-                     onPrintError("onBeforeGetContent", error);
-                 }
-@@ -107,7 +107,7 @@ const useReactToPrint = (props) => {
-             try {
-                 resolvedOnAfterPrint = onAfterPrint();
-             }
--            catch (error) {
-+            catch (error) { // eslint-disable-line @typescript-eslint/no-explicit-any
-                 if (onPrintError) {
-                     onPrintError("onAfterPrint", error);
-                 }
+         });
+
