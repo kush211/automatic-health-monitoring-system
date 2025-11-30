@@ -13,7 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 
 export default function AppointmentsPage() {
-  const [date, setDate] = useState<Date | undefined>(new Date('2024-07-28'));
+  const [date, setDate] = useState<Date | undefined>(new Date('2024-07-28T00:00:00'));
   const [view, setView] = useState<'day' | 'week'>('day');
 
   const doctorAppointments = allAppointments.filter(
@@ -61,7 +61,7 @@ export default function AppointmentsPage() {
         <Card className="md:col-span-2 flex flex-col min-h-0">
           <CardHeader>
             <CardTitle>
-              Schedule for {date ? date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Today'}
+              Schedule for {date ? date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : 'Today'}
             </CardTitle>
             <CardDescription>
               {appointmentsForSelectedDate.length > 0
