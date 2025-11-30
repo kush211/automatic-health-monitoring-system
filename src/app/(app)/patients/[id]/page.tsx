@@ -336,6 +336,7 @@ export default function PatientDetailPage() {
           onClose={() => setIsChatModalOpen(false)}
           patientId={patient.patientId}
           patientName={patient.name}
+          patientMedicalHistory={mockMedicalHistory}
         />
       )}
     </div>

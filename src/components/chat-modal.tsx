@@ -26,6 +26,7 @@ interface ChatModalProps {
   onClose: () => void;
   patientId: string;
   patientName: string;
+  patientMedicalHistory: string;
 }
 
 interface Message {
@@ -38,6 +39,7 @@ export function ChatModal({
   onClose,
   patientId,
   patientName,
+  patientMedicalHistory,
 }: ChatModalProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -63,7 +65,7 @@ export function ChatModal({
 
     try {
       const result = await chatWithAI({
-        patientId,
+        patientMedicalHistory,
         message: input,
       });
       const aiMessage: Message = { sender: "ai", text: result.response };
