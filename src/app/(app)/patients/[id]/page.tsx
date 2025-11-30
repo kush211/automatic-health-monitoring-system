@@ -50,6 +50,7 @@ import { AddNewRecordModal } from '@/components/add-new-record-modal';
 import { PrescriptionModal } from '@/components/prescription-modal';
 import { UploadLabReportModal } from '@/components/upload-lab-report-modal';
 import { ViewLabReportModal } from '@/components/view-lab-report-modal';
+import { MedicalRecordDetailModal } from '@/components/medical-record-detail-modal';
 
 const initialMedicalHistory = [
   {
@@ -113,6 +114,9 @@ export default function PatientDetailPage() {
 
   const [isViewReportModalOpen, setIsViewReportModalOpen] = useState(false);
   const [selectedLabReport, setSelectedLabReport] = useState<LabReport | null>(null);
+
+  const [isRecordDetailModalOpen, setIsRecordDetailModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
 
   const patient = patients.find(
     (p) => p.patientId === `PID-${id}-2024`
@@ -191,6 +195,11 @@ export default function PatientDetailPage() {
   const handleViewLabReport = (report: LabReport) => {
     setSelectedLabReport(report);
     setIsViewReportModalOpen(true);
+  };
+  
+  const handleViewRecordDetail = (record: MedicalRecord) => {
+    setSelectedRecord(record);
+    setIsRecordDetailModalOpen(true);
   };
 
   return (
@@ -337,7 +346,7 @@ export default function PatientDetailPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => handleViewRecordDetail(record)}>
                           <ChevronRight className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -410,6 +419,14 @@ export default function PatientDetailPage() {
           onClose={() => setIsViewReportModalOpen(false)}
           patientName={patient.name}
           report={selectedLabReport}
+        />
+      )}
+      {patient && selectedRecord && (
+        <MedicalRecordDetailModal
+          isOpen={isRecordDetailModalOpen}
+          onClose={() => setIsRecordDetailModalOpen(false)}
+          patientName={patient.name}
+          record={selectedRecord}
         />
       )}
     </div>
