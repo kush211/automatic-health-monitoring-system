@@ -9,17 +9,17 @@ export function ThemeToggle() {
   const { setTheme, theme } = useTheme();
 
   return (
-    <Tabs value={theme} onValueChange={setTheme} className="h-9">
-      <TabsList className="grid h-full w-full grid-cols-3 bg-muted p-1">
-        <TabsTrigger value="light" className="h-full flex items-center justify-center">
+    <Tabs value={theme} onValueChange={setTheme}>
+      <TabsList className="grid h-9 w-full grid-cols-3 p-0">
+        <TabsTrigger value="light" className="h-full">
           <Sun className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">Light</span>
         </TabsTrigger>
-        <TabsTrigger value="dark" className="h-full flex items-center justify-center">
+        <TabsTrigger value="dark" className="h-full">
           <Moon className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">Dark</span>
         </TabsTrigger>
-        <TabsTrigger value="system" className="h-full flex items-center justify-center">
+        <TabsTrigger value="system" className="h-full">
           <Monitor className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">System</span>
         </TabsTrigger>
