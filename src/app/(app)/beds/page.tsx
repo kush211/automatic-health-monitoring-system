@@ -6,9 +6,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BedIcon, CheckCircle2, PlusCircle, UserPlus } from 'lucide-react';
 import { AddBedModal } from '@/components/add-bed-modal';
 import { AssignPatientModal } from '@/components/assign-patient-modal';
+import { DischargeSummaryModal } from '@/components/discharge-summary-modal';
 import type { Bed, Patient } from '@/lib/types';
 import { patients as allPatients } from '@/lib/data';
 import { Separator } from '@/components/ui/separator';
+import type { GenerateDischargeSummaryOutput } from '@/ai/flows/generate-discharge-summary';
+import { generateDischargeSummary } from '@/ai/flows/generate-discharge-summary';
 
 const initialBeds: Bed[] = [
   {
@@ -18,7 +21,7 @@ const initialBeds: Bed[] = [
     assignedPatientId: 'PID-1-2024',
     assignedPatientName: 'Aarav Sharma',
     assignedPatientAvatarUrl: 'https://picsum.photos/seed/patient1/100/100',
-    assignedAt: new Date().toISOString(),
+    assignedAt: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
   },
   {
     bedId: 'Bed 102',
@@ -37,6 +40,12 @@ export default function BedsPage() {
   const [isAddBedModalOpen, setIsAddBedModalOpen] = useState(false);
   const [isAssignPatientModalOpen, setIsAssignPatientModalOpen] = useState(false);
   const [selectedBed, setSelectedBed] = useState<Bed | null>(null);
+
+  // State for discharge summary
+  const [isDischargeModalOpen, setIsDischargeModalOpen] = useState(false);
+  const [bedToDischarge, setBedToDischarge] = useState<Bed | null>(null);
+  const [dischargeSummary, setDischargeSummary] = useState<GenerateDischargeSummaryOutput | null>(null);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
   const handleOpenAssignModal = (bed: Bed) => {
     setSelectedBed(bed);
@@ -64,7 +73,36 @@ export default function BedsPage() {
     }
   };
 
-  const handleDischargePatient = (bedId: string) => {
+  const handleOpenDischargeModal = async (bed: Bed) => {
+    setBedToDischarge(bed);
+    setIsDischargeModalOpen(true);
+    setIsSummaryLoading(true);
+
+    try {
+        const mockMedicalHistory = `
+        Patient admitted with symptoms of Acute Myocardial Infarction.
+        Vitals: BP 160/100, HR 110, RR 22, SpO2 94%.
+        Treatment: Administered aspirin, nitroglycerin, and morphine. Underwent successful coronary angioplasty.
+        Post-procedure: Monitored in ICU, vitals stabilized. Patient responded well to treatment.
+        Lab Reports: Lipid Profile - Total Cholesterol 240 mg/dL, LDL 160 mg/dL.
+        Condition at Discharge: Stable, pain-free, and ambulatory.
+      `;
+      const result = await generateDischargeSummary({
+        patientName: bed.assignedPatientName!,
+        admissionDate: new Date(bed.assignedAt!).toLocaleDateString(),
+        dischargeDate: new Date().toLocaleDateString(),
+        medicalHistory: mockMedicalHistory,
+      });
+      setDischargeSummary(result);
+    } catch (error) {
+        console.error("Failed to generate discharge summary:", error);
+        // Handle error state in UI if needed
+    } finally {
+        setIsSummaryLoading(false);
+    }
+  };
+
+  const handleConfirmDischarge = (bedId: string) => {
     setBeds(
       beds.map((b) =>
         b.bedId === bedId
@@ -79,7 +117,15 @@ export default function BedsPage() {
           : b
       )
     );
+    handleCloseDischargeModal();
   };
+  
+  const handleCloseDischargeModal = () => {
+    setIsDischargeModalOpen(false);
+    setBedToDischarge(null);
+    setDischargeSummary(null);
+    setIsSummaryLoading(false);
+  }
 
   const handleAddBed = (ward: 'General' | 'ICU' | 'Maternity') => {
     const newBedId = `Bed ${Math.floor(Math.random() * 900) + 100}`;
@@ -148,7 +194,7 @@ export default function BedsPage() {
                         <Button
                           variant="outline"
                           className="mt-2 bg-background hover:bg-muted"
-                          onClick={() => handleDischargePatient(bed.bedId)}
+                          onClick={() => handleOpenDischargeModal(bed)}
                         >
                           Discharge Patient
                         </Button>
@@ -199,6 +245,15 @@ export default function BedsPage() {
         patients={allPatients}
         bedId={selectedBed?.bedId}
       />
+      {bedToDischarge && (
+        <DischargeSummaryModal
+          isOpen={isDischargeModalOpen}
+          onClose={handleCloseDischargeModal}
+          summary={dischargeSummary}
+          isLoading={isSummaryLoading}
+          onConfirmDischarge={() => handleConfirmDischarge(bedToDischarge.bedId)}
+        />
+      )}
     </div>
   );
 }
