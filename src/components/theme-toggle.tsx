@@ -11,15 +11,15 @@ export function ThemeToggle() {
   return (
     <Tabs value={theme} onValueChange={setTheme} className="h-9">
       <TabsList className="grid h-full w-full grid-cols-3 bg-muted p-1">
-        <TabsTrigger value="light" className="h-full">
+        <TabsTrigger value="light" className="h-full flex items-center justify-center">
           <Sun className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">Light</span>
         </TabsTrigger>
-        <TabsTrigger value="dark" className="h-full">
+        <TabsTrigger value="dark" className="h-full flex items-center justify-center">
           <Moon className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">Dark</span>
         </TabsTrigger>
-        <TabsTrigger value="system" className="h-full">
+        <TabsTrigger value="system" className="h-full flex items-center justify-center">
           <Monitor className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">System</span>
         </TabsTrigger>
