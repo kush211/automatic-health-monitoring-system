@@ -16,8 +16,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, FilePlus } from "lucide-react";
+import { FilePlus } from "lucide-react";
 import { Separator } from "./ui/separator";
+import { demoUser } from "@/lib/data";
 
 interface AddNewRecordModalProps {
   isOpen: boolean;
@@ -35,17 +36,16 @@ export function AddNewRecordModal({
   onRecordAdded,
 }: AddNewRecordModalProps) {
   const [diagnosis, setDiagnosis] = useState("");
-  const [doctor, setDoctor] = useState("");
   const [notes, setNotes] = useState("");
   const [prescriptionIssued, setPrescriptionIssued] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   const handleSave = async () => {
-    if (!diagnosis || !doctor) {
+    if (!diagnosis) {
       toast({
         title: "Missing Information",
-        description: "Please fill in the Diagnosis and Doctor fields.",
+        description: "Please fill in the Diagnosis field.",
         variant: "destructive",
       });
       return;
@@ -58,7 +58,7 @@ export function AddNewRecordModal({
     const newRecord = {
       date: new Date().toLocaleDateString("en-GB"),
       diagnosis,
-      doctor,
+      doctor: demoUser.name,
       notes,
       prescription: prescriptionIssued,
       labReports: 0,
@@ -66,6 +66,12 @@ export function AddNewRecordModal({
 
     onRecordAdded(newRecord);
     setIsSaving(false);
+    
+    // Reset form state
+    setDiagnosis("");
+    setNotes("");
+    setPrescriptionIssued(false);
+
     onClose();
     toast({
       title: "Record Added",
@@ -95,17 +101,6 @@ export function AddNewRecordModal({
               id="diagnosis"
               value={diagnosis}
               onChange={(e) => setDiagnosis(e.target.value)}
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="doctor" className="text-right">
-              Doctor
-            </Label>
-            <Input
-              id="doctor"
-              value={doctor}
-              onChange={(e) => setDoctor(e.target.value)}
               className="col-span-3"
             />
           </div>
@@ -143,5 +138,3 @@ export function AddNewRecordModal({
     </Dialog>
   );
 }
-
-    

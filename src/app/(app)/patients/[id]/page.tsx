@@ -48,13 +48,14 @@ import { generatePatientSummary } from '@/ai/flows/generate-patient-summary';
 import type { GeneratePatientSummaryOutput } from '@/ai/flows/generate-patient-summary';
 import { AddNewRecordModal } from '@/components/add-new-record-modal';
 
-const medicalHistory = [
+const initialMedicalHistory = [
   {
     date: '10/06/2024',
     diagnosis: 'Hypertension Check-up',
     doctor: 'Dr. Priya Sharma',
     prescription: true,
     labReports: 1,
+    notes: '',
   },
   {
     date: '15/03/2024',
@@ -62,6 +63,7 @@ const medicalHistory = [
     doctor: 'Dr. Vikram Rao',
     prescription: false,
     labReports: 0,
+    notes: '',
   },
   {
     date: '20/11/2023',
@@ -69,6 +71,7 @@ const medicalHistory = [
     doctor: 'Dr. Priya Sharma',
     prescription: true,
     labReports: 0,
+    notes: '',
   },
 ];
 
@@ -92,6 +95,7 @@ export default function PatientDetailPage() {
 
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
+  const [medicalHistory, setMedicalHistory] = useState(initialMedicalHistory);
 
   const patient = patients.find(
     (p) => p.patientId === `PID-${id}-2024`
@@ -155,8 +159,7 @@ export default function PatientDetailPage() {
   };
 
   const handleNewRecordAdded = (newRecord: any) => {
-    // Here you would typically update your state or refetch data
-    console.log("New record added:", newRecord);
+    setMedicalHistory(prevHistory => [newRecord, ...prevHistory]);
   };
 
 
@@ -357,5 +360,3 @@ export default function PatientDetailPage() {
     </div>
   );
 }
-
-    
