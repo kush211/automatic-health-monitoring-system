@@ -4,31 +4,31 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 140 44% 30%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --background: 95 43% 95%;
+    --foreground: 135 15% 20%;
+    --card: 95 43% 88%;
+    --card-foreground: 135 15% 20%;
+    --popover: 95 43% 88%;
+    --popover-foreground: 135 15% 20%;
+    --primary: 135 27% 34%;
+    --primary-foreground: 95 40% 98%;
+    --secondary: 95 30% 80%;
+    --secondary-foreground: 135 27% 34%;
+    --muted: 95 30% 80%;
+    --muted-foreground: 135 15% 40%;
+    --accent: 181 21% 57%;
+    --accent-foreground: 135 15% 15%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 140 44% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 95 20% 75%;
+    --input: 95 20% 80%;
+    --ring: 181 21% 57%;
+    --chart-1: 135 27% 34%;
+    --chart-2: 181 21% 57%;
+    --chart-3: 135 20% 50%;
+    --chart-4: 181 15% 70%;
+    --chart-5: 135 30% 20%;
     --radius: 0.5rem;
-    --chart-1: 140 44% 40%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
     --sidebar-background: 222.2 84% 4.9%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 140 44% 60%;
@@ -38,40 +38,39 @@
     --sidebar-border: 217.2 32.6% 17.5%;
     --sidebar-ring: 140 44% 40%;
   }
-
   .dark {
-    --background: 140 10% 12%;
-    --foreground: 210 40% 98%;
-    --card: 140 6% 18%;
-    --card-foreground: 210 40% 98%;
-    --popover: 140 6% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 140 44% 50%;
-    --primary-foreground: 140 10% 10%;
-    --secondary: 140 10% 25%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 140 10% 22%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 140 10% 25%;
-    --accent-foreground: 210 40% 98%;
+    --background: 135 10% 8%;
+    --foreground: 95 20% 90%;
+    --card: 135 10% 12%;
+    --card-foreground: 95 20% 90%;
+    --popover: 135 10% 8%;
+    --popover-foreground: 95 20% 90%;
+    --primary: 135 27% 34%;
+    --primary-foreground: 95 40% 98%;
+    --secondary: 135 15% 20%;
+    --secondary-foreground: 95 20% 90%;
+    --muted: 135 15% 20%;
+    --muted-foreground: 95 20% 60%;
+    --accent: 181 21% 57%;
+    --accent-foreground: 135 15% 15%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 140 10% 25%;
-    --input: 140 8% 28%;
-    --ring: 140 44% 50%;
-    --chart-1: 140 44% 60%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 140 6% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 140 44% 60%;
-    --sidebar-primary-foreground: 140 10% 10%;
-    --sidebar-accent: 140 10% 25%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 140 10% 25%;
-    --sidebar-ring: 140 44% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 135 10% 20%;
+    --input: 135 10% 20%;
+    --ring: 181 21% 57%;
+    --chart-1: 135 27% 34%;
+    --chart-2: 181 21% 57%;
+    --chart-3: 135 20% 50%;
+    --chart-4: 181 15% 70%;
+    --chart-5: 135 30% 20%;
+    --sidebar-background: 135 10% 8%;
+    --sidebar-foreground: 95 20% 90%;
+    --sidebar-primary: 135 27% 34%;
+    --sidebar-primary-foreground: 95 40% 98%;
+    --sidebar-accent: 135 15% 20%;
+    --sidebar-accent-foreground: 95 20% 90%;
+    --sidebar-border: 135 10% 20%;
+    --sidebar-ring: 181 21% 57%;
   }
 }
 
@@ -81,6 +80,5 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
