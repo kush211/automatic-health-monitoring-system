@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRef } from 'react';
@@ -42,29 +43,27 @@ export function DischargeSummaryModal({
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
+        
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
-        const width = pdfWidth;
-        const height = width / ratio;
-
-        // Check if content fits on one page, otherwise add new pages
-        let position = 0;
-        const pageHeight = pdf.internal.pageSize.height;
-        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        const ratio = canvasHeight / canvasWidth;
+        const imgHeight = pdfWidth * ratio;
         let heightLeft = imgHeight;
+        let position = 0;
 
         pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pageHeight;
-        
-        while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-            heightLeft -= pageHeight;
-        }
+        heightLeft -= pdfHeight;
 
-        pdf.save(`Discharge-Summary-${summary?.patientName?.replace(' ', '-') || 'Patient'}.pdf`);
+        while (heightLeft > 0) {
+          position = -heightLeft;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+          heightLeft -= pdfHeight;
+        }
+        
+        pdf.autoPrint();
+        pdf.output('dataurlnewwindow');
       });
     }
   };
@@ -156,7 +155,7 @@ export function DischargeSummaryModal({
             disabled={isLoading || !summary}
           >
             <Printer className="mr-2 h-4 w-4" />
-            Save as PDF
+            Print Summary
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
