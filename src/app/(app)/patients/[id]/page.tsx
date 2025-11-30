@@ -72,12 +72,12 @@ const labReports = [
 ];
 
 export default function PatientDetailPage({
-  params,
+  params: { id },
 }: {
   params: { id: string };
 }) {
   const patient = patients.find(
-    (p) => p.patientId === `PID-${params.id}-2024`
+    (p) => p.patientId === `PID-${id}-2024`
   );
 
   if (!patient) {
