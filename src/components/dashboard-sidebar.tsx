@@ -13,6 +13,8 @@ import {
   FlaskConical,
   Settings,
   LogOut,
+  LifeBuoy,
+  UserCircle,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,14 +34,16 @@ const menuItems = [
   { href: "/patients", label: "Patients", icon: Users },
   { href: "/beds", label: "Beds", icon: Bed },
   { href: "/appointments", label: "Appointments", icon: Calendar },
-  { href: "/billing", label: "Billing", icon: FileText },
-  { href: "/pharmacy", label: "Pharmacy", icon: Pill },
-  { href: "/lab", label: "Lab Reports", icon: FlaskConical },
 ];
+
+const bottomMenuItems = [
+    { href: "/account", label: "My Account", icon: UserCircle },
+    { href: "/support", label: "Help/Support", icon: LifeBuoy },
+]
 
 export function DashboardSidebar() {
   const pathname = usePathname();
-  const isActive = (href: string) => pathname === href;
+  const isActive = (href: string) => pathname.startsWith(href) && (href !== '/dashboard' || pathname === '/dashboard');
 
   return (
     <Sidebar>
@@ -73,14 +77,19 @@ export function DashboardSidebar() {
       <SidebarSeparator />
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <Link href="/settings">
-              <SidebarMenuButton isActive={isActive('/settings')} tooltip="Settings">
-                <Settings />
-                <span>Settings</span>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
+          {bottomMenuItems.map((item) => (
+             <SidebarMenuItem key={item.href}>
+              <Link href={item.href}>
+                <SidebarMenuButton
+                  isActive={isActive(item.href)}
+                  tooltip={item.label}
+                >
+                  <item.icon />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          ))}
            <SidebarMenuItem>
             <Link href="/login">
               <SidebarMenuButton tooltip="Logout">
@@ -98,7 +107,7 @@ export function DashboardSidebar() {
             </Avatar>
             <div className="flex flex-col">
               <span className="font-semibold text-sm">{demoUser.name}</span>
-              <span className="text-xs text-muted-foreground">{demoUser.role}</span>
+              <span className="text-xs text-muted-foreground">{demoUser.email}</span>
             </div>
           </div>
       </SidebarFooter>

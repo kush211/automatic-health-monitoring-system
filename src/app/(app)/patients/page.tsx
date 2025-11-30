@@ -5,6 +5,7 @@ import {
   ChevronDown,
   MoreHorizontal,
 } from "lucide-react";
+import Link from 'next/link';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -42,35 +43,35 @@ import { DateWithAI } from "@/components/date-with-ai";
 
 const data: Payment[] = [
   {
-    id: "m5gr84i9",
+    id: "1",
     name: "Aarav Sharma",
     status: "Active",
     lastVisit: "2024-05-20",
     diagnosis: "Hypertension",
   },
   {
-    id: "3u1reuv4",
+    id: "2",
     name: "Priya Singh",
     status: "Inactive",
     lastVisit: "2024-05-21",
     diagnosis: "Diabetes",
   },
   {
-    id: "derv1ws0",
+    id: "3",
     name: "Rohan Mehta",
     status: "Active",
     lastVisit: "2024-05-19",
     diagnosis: "Asthma",
   },
   {
-    id: "5kma53ae",
+    id: "4",
     name: "Sunita Gupta",
     status: "Active",
     lastVisit: "2024-05-22",
     diagnosis: "Migraine",
   },
   {
-    id: "bhqecj4p",
+    id: "5",
     name: "Amit Kumar",
     status: "Discharged",
     lastVisit: "2024-04-15",
@@ -153,7 +154,9 @@ export const columns: ColumnDef<Payment>[] = [
 
       return (
         <div className="flex items-center justify-end gap-2">
-            <Button variant="outline" size="sm">View Patient</Button>
+            <Link href={`/patients/${payment.id}`} passHref>
+              <Button variant="outline" size="sm">View Patient</Button>
+            </Link>
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">

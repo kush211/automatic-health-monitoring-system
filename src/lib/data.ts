@@ -2,8 +2,8 @@ import { Patient, User, Appointment, RecentActivity, MonthlyVisit } from "./type
 
 export const demoUser: User = {
   uid: 'doc1',
-  name: "Dr. Aarav Sharma",
-  email: "aarav.sharma@healthhub.dev",
+  name: "Dr. Priya Sharma",
+  email: "priya.sharma@example.com",
   role: "Doctor",
   clinicId: "clinic123",
   avatarUrl: "https://picsum.photos/seed/doc1/100/100",
@@ -13,10 +13,10 @@ export const patients: Patient[] = [
   {
     patientId: "PID-1-2024",
     name: "Aarav Sharma",
-    dob: "1985-05-15",
+    dob: "1988-07-21",
     gender: "Male",
-    phone: "9876543210",
-    address: "123, Main Street, Delhi",
+    phone: "+91-9876543210",
+    address: "12, Gandhi Nagar, Jaipur, Rajasthan",
     primaryDoctorId: "doc1",
     primaryDoctorName: "Dr. Anjali Sharma",
     consent_for_ai: true,
@@ -65,6 +65,20 @@ export const patients: Patient[] = [
     avatarUrl: 'https://picsum.photos/seed/patient4/100/100',
     createdAt: '2024-04-20T16:20:00Z',
     updatedAt: '2024-05-22T11:45:00Z',
+  },
+  {
+    patientId: 'PID-5-2024',
+    name: "Amit Kumar",
+    dob: "1985-05-15",
+    gender: "Male",
+    phone: "9876543210",
+    address: "123, Main Street, Delhi",
+    primaryDoctorId: "doc1",
+    primaryDoctorName: "Dr. Anjali Sharma",
+    consent_for_ai: true,
+    avatarUrl: "https://picsum.photos/seed/patient5/100/100",
+    createdAt: "2024-01-10T10:00:00Z",
+    updatedAt: "2024-05-20T14:30:00Z",
   },
 ];
 
