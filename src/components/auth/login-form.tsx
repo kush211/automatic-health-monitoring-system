@@ -18,7 +18,7 @@ export function LoginForm() {
 
   return (
     <Tabs defaultValue="doctor" className="w-full" onValueChange={setActiveTab}>
-      <TabsList className="grid w-full grid-cols-3 bg-muted mb-4 p-0">
+      <TabsList className="grid w-full grid-cols-3 bg-muted mb-4 p-1 h-auto">
         <TabsTrigger value="doctor">Doctor</TabsTrigger>
         <TabsTrigger value="nurse">Nurse</TabsTrigger>
         <TabsTrigger value="receptionist">Receptionist</TabsTrigger>
@@ -58,10 +58,20 @@ export function LoginForm() {
         </form>
       </TabsContent>
       <TabsContent value="nurse">
-        {/* Nurse login form can be added here */}
+         <div className="text-center mb-4">
+          <h2 className="text-2xl font-bold text-foreground">Nurse Access</h2>
+          <p className="text-sm text-muted-foreground">
+            Enter your credentials to access the nurse dashboard.
+          </p>
+        </div>
       </TabsContent>
       <TabsContent value="receptionist">
-        {/* Receptionist login form can be added here */}
+        <div className="text-center mb-4">
+          <h2 className="text-2xl font-bold text-foreground">Receptionist Access</h2>
+          <p className="text-sm text-muted-foreground">
+            Enter your credentials to access the reception dashboard.
+          </p>
+        </div>
       </TabsContent>
     </Tabs>
   );

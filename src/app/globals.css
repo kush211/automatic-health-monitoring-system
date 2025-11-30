@@ -4,38 +4,38 @@
 
 @layer base {
   :root {
-    --background: 90 15% 96%;
-    --foreground: 0 0% 20%;
-    --card: 100 30% 92%;
-    --card-foreground: 0 0% 20%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 84% 5%;
-    --primary: 130 20% 36%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 100 30% 92%;
-    --secondary-foreground: 140 10% 20%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 0 0% 99%;
-    --accent-foreground: 130 20% 36%;
-    --destructive: 0 84.2% 60.2%;
+    --background: 140 8% 8%;
+    --foreground: 210 40% 98%;
+    --card: 140 8% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 140 10% 15%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 140 44% 60%;
+    --primary-foreground: 140 10% 10%;
+    --secondary: 140 10% 25%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 140 8% 16%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 140 10% 25%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 120 11% 97%;
-    --ring: 130 20% 36%;
-    --chart-1: 224 76% 48%;
+    --border: 140 10% 25%;
+    --input: 140 8% 10%;
+    --ring: 140 44% 60%;
+    --chart-1: 210 40% 98%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 80 56% 96%;
-    --sidebar-accent-foreground: 123 44% 38%;
-    --sidebar-border: 220 13% 91%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 123 44% 48%;
+    --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
