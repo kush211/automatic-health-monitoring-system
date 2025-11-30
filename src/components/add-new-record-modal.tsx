@@ -161,8 +161,8 @@ export function AddNewRecordModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-3xl h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <FilePlus className="h-6 w-6 text-primary" />
             Add New Medical Record
@@ -172,7 +172,7 @@ export function AddNewRecordModal({
           </DialogDescription>
         </DialogHeader>
         <Separator />
-        <ScrollArea className="flex-1 min-h-0 pr-6 -mr-6">
+        <ScrollArea className="flex-grow min-h-0 pr-6 -mr-6">
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="diagnosis" className="text-right">
@@ -276,7 +276,7 @@ export function AddNewRecordModal({
           )}
         </div>
         </ScrollArea>
-        <DialogFooter className="mt-auto pt-4 border-t">
+        <DialogFooter className="flex-shrink-0 mt-auto pt-4 border-t">
           <Button variant="outline" onClick={handleClose} disabled={isSaving}>
             Cancel
           </Button>
@@ -288,3 +288,5 @@ export function AddNewRecordModal({
     </Dialog>
   );
 }
+
+  
