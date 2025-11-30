@@ -32,7 +32,7 @@ const prompt = ai.definePrompt({
   name: 'chatWithAIPrompt',
   input: {schema: ChatWithAIInputSchema},
   output: {schema: ChatWithAIOutputSchema},
-  prompt: `You are an AI assistant helping doctors with patient cases.
+  prompt: `You are an AI assistant helping doctors with patient cases. Your responses should be short, simple, and formatted as bullet points for easy readability.
 
   You have access to the patient's medical history and current vitals.
   Use this information to provide insights and support the doctor in making clinical decisions.
