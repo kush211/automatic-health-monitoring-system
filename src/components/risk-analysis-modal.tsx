@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -52,7 +53,7 @@ export function RiskAnalysisModal({
       <DialogContent className="max-w-3xl bg-card">
         <DialogHeader>
           <DialogTitle className="text-2xl font-headline">
-            AI-Powered Risk Analysis
+            Risk Analysis for {patientName}
           </DialogTitle>
           <DialogDescription>
             This is an automated assessment based on patient history. For
@@ -65,10 +66,7 @@ export function RiskAnalysisModal({
         <ScrollArea className="max-h-[60vh] pr-6">
           <div className="space-y-6 p-1">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-foreground">
-                Risk Assessment for {patientName}
-              </h3>
-              {isLoading ? (
+               {isLoading ? (
                 <Skeleton className="h-8 w-28 rounded-full" />
               ) : (
                 analysisResult && (

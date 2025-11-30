@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -39,7 +40,7 @@ export function SummaryModal({
         <DialogHeader>
           <DialogTitle className="text-2xl font-headline flex items-center gap-2">
             <FileText className="h-6 w-6 text-primary" />
-            AI-Generated Patient Summary
+            Summary for {patientName}
           </DialogTitle>
           <DialogDescription>
             This is an automated summary of {patientName}'s medical history. For clinical use only.
