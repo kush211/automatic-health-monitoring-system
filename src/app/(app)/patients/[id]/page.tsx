@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { notFound, useParams } from 'next/navigation';
-import Link from 'next/link';
 import {
   Avatar,
   AvatarFallback,
@@ -47,6 +46,7 @@ import type { AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis';
 import { aiRiskAnalysis } from '@/ai/flows/ai-risk-analysis';
 import { generatePatientSummary } from '@/ai/flows/generate-patient-summary';
 import type { GeneratePatientSummaryOutput } from '@/ai/flows/generate-patient-summary';
+import { AddNewRecordModal } from '@/components/add-new-record-modal';
 
 const medicalHistory = [
   {
@@ -91,6 +91,7 @@ export default function PatientDetailPage() {
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
 
   const patient = patients.find(
     (p) => p.patientId === `PID-${id}-2024`
@@ -153,6 +154,11 @@ export default function PatientDetailPage() {
     }
   };
 
+  const handleNewRecordAdded = (newRecord: any) => {
+    // Here you would typically update your state or refetch data
+    console.log("New record added:", newRecord);
+  };
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -183,7 +189,7 @@ export default function PatientDetailPage() {
             </Button>
           </div>
           <div className="flex flex-col gap-2">
-            <Button>
+            <Button onClick={() => setIsNewRecordModalOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add New Record
             </Button>
@@ -339,6 +345,17 @@ export default function PatientDetailPage() {
           patientMedicalHistory={mockMedicalHistory}
         />
       )}
+      {patient && (
+        <AddNewRecordModal
+          isOpen={isNewRecordModalOpen}
+          onClose={() => setIsNewRecordModalOpen(false)}
+          patientId={patient.patientId}
+          patientName={patient.name}
+          onRecordAdded={handleNewRecordAdded}
+        />
+      )}
     </div>
   );
 }
+
+    
