@@ -61,12 +61,9 @@ export function DashboardSidebar() {
                 <SidebarMenuButton
                   isActive={isActive(item.href)}
                   tooltip={item.label}
-                  asChild
                 >
-                  <>
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </>
+                  <item.icon />
+                  <span>{item.label}</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -78,21 +75,17 @@ export function DashboardSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <Link href="/settings">
-              <SidebarMenuButton isActive={isActive('/settings')} tooltip="Settings" asChild>
-                <>
-                  <Settings />
-                  <span>Settings</span>
-                </>
+              <SidebarMenuButton isActive={isActive('/settings')} tooltip="Settings">
+                <Settings />
+                <span>Settings</span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
            <SidebarMenuItem>
             <Link href="/login">
-              <SidebarMenuButton tooltip="Logout" asChild>
-                <>
-                  <LogOut />
-                  <span>Logout</span>
-                </>
+              <SidebarMenuButton tooltip="Logout">
+                <LogOut />
+                <span>Logout</span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
