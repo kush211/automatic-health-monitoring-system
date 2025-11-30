@@ -96,7 +96,7 @@ export default function PatientDetailPage() {
             <p className="text-muted-foreground">Patient ID: {patient.patientId}</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-end gap-2 w-full sm:w-auto">
           <Button variant="destructive" className="w-full">
             <AlertCircle className="mr-2 h-4 w-4" />
             Risk Analysis
@@ -113,7 +113,7 @@ export default function PatientDetailPage() {
             <PlusCircle className="mr-2 h-4 w-4" />
             Add New Record
           </Button>
-          <Button className="w-full col-span-2">
+          <Button className="w-full col-span-2 sm:col-auto">
             <Upload className="mr-2 h-4 w-4" />
             Upload Lab Report
           </Button>
