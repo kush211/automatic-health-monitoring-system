@@ -1,3 +1,4 @@
+'use client';
 import Image from "next/image";
 import Link from "next/link";
 import { Stethoscope } from "lucide-react";
@@ -24,6 +25,11 @@ export default function LoginPage() {
           <Stethoscope className="h-8 w-8 text-white" />
           <h1 className="font-headline text-white text-2xl">HealthHub Rural</h1>
         </div>
+         <div className="absolute top-8 right-8">
+           <Link href="#" className="text-sm font-medium text-white hover:underline">
+            Admin
+          </Link>
+        </div>
         <div className="absolute bottom-8 left-8">
             <div className="max-w-md">
                 <blockquote className="text-lg italic text-white/80">
@@ -34,10 +40,7 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="flex items-center justify-center py-12 relative">
-        <div className="absolute top-8 right-8 flex items-center gap-4">
-          <Link href="#" className="text-sm font-medium hover:underline">
-            Admin
-          </Link>
+        <div className="absolute top-8 right-8">
           <ThemeToggle />
         </div>
         <div className="mx-auto grid w-[400px] gap-6 p-8 rounded-lg bg-card shadow-lg">
