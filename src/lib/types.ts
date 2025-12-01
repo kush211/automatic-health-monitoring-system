@@ -1,3 +1,4 @@
+
 export type UserRole = "Admin" | "Doctor" | "Nurse" | "Receptionist" | "Pharmacist" | "LabTech";
 
 export type User = {

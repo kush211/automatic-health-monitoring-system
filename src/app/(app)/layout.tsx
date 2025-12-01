@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { NurseSidebar } from "@/components/nurse-sidebar";
+import { ReceptionistSidebar } from "@/components/receptionist-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -53,6 +54,7 @@ export default function AppLayout({
       <SidebarProvider>
         {role === 'Doctor' && <DashboardSidebar />}
         {role === 'Nurse' && <NurseSidebar />}
+        {role === 'Receptionist' && <ReceptionistSidebar />}
 
         <SidebarInset>
           <div className="flex min-h-screen w-full flex-col overflow-hidden">

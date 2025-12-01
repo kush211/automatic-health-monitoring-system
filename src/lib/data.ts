@@ -19,6 +19,15 @@ export const nurseUser: User = {
     avatarUrl: 'https://picsum.photos/seed/nurse1/100/100',
 };
 
+export const receptionistUser: User = {
+    uid: 'rec1',
+    name: 'Anjali Desai',
+    email: 'anjali.desai@example.com',
+    role: 'Receptionist',
+    clinicId: 'clinic123',
+    avatarUrl: 'https://picsum.photos/seed/rec1/100/100',
+};
+
 export const allUsers: User[] = [
     demoUser,
     {
@@ -38,6 +47,7 @@ export const allUsers: User[] = [
       avatarUrl: 'https://picsum.photos/seed/doc3/100/100',
     },
     nurseUser,
+    receptionistUser,
 ];
 
 

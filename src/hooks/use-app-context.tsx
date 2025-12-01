@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 import type { Appointment, Bed, Patient, User } from '@/lib/types';
-import { appointments as initialAppointments } from '@/lib/data';
+import { appointments as initialAppointments, patients as allPatients } from '@/lib/data';
 
 const initialBeds: Bed[] = [
   {
@@ -30,10 +30,12 @@ const initialBeds: Bed[] = [
 interface AppContextType {
   appointments: Appointment[];
   beds: Bed[];
+  dischargedPatientsForBilling: Patient[];
   transferAppointment: (appointmentId: string, newDoctor: User) => void;
   addBed: (ward: 'General' | 'ICU' | 'Maternity') => void;
   assignPatientToBed: (bedId: string, patient: Patient) => void;
   dischargePatientFromBed: (bedId: string) => void;
+  generateBillForPatient: (patientId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -41,6 +43,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
   const [beds, setBeds] = useState<Bed[]>(initialBeds);
+  const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>([]);
 
   const transferAppointment = (appointmentId: string, newDoctor: User) => {
     setAppointments(prev =>
@@ -80,6 +83,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const dischargePatientFromBed = (bedId: string) => {
+    const bedToDischarge = beds.find(b => b.bedId === bedId);
+    if (bedToDischarge && bedToDischarge.assignedPatientId) {
+        const patientToBill = allPatients.find(p => p.patientId === bedToDischarge.assignedPatientId);
+        if (patientToBill) {
+            setDischargedPatientsForBilling(prev => [...prev, patientToBill]);
+        }
+    }
+
     setBeds(prev =>
       prev.map(b =>
         b.bedId === bedId
@@ -96,14 +107,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const generateBillForPatient = (patientId: string) => {
+    setDischargedPatientsForBilling(prev => prev.filter(p => p.patientId !== patientId));
+  }
+
 
   const value = {
     appointments,
     beds,
+    dischargedPatientsForBilling,
     transferAppointment,
     addBed,
     assignPatientToBed,
     dischargePatientFromBed,
+    generateBillForPatient,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
