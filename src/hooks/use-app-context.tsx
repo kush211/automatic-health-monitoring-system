@@ -256,25 +256,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   
   const addPatient = (payload: NewPatientPayload) => {
     if (!firestore) return;
-    // Note: Using `patients.length` for ID generation is not robust in a multi-user environment.
-    // A better approach would be to use Firestore's auto-generated IDs or a UUID library.
-    // For this demo, we'll keep it simple.
-    const newPatientId = `PID-${patients.length + initialPatients.length + 1}-${new Date().getFullYear()}`;
+    const patientId = `PID-${patients.length + initialPatients.length + 1}-${new Date().getFullYear()}`;
     const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
     
     const newPatientData = {
         ...payload,
-        patientId: newPatientId,
+        patientId,
         primaryDoctorName: primaryDoctor?.name || 'Unassigned',
-        avatarUrl: `https://picsum.photos/seed/${newPatientId}/100/100`,
+        avatarUrl: `https://picsum.photos/seed/${patientId}/100/100`,
         consent_for_ai: true, // Defaulting to true for demo purposes
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };
 
-    // Use setDoc with an explicit document ID
-    const patientDocRef = doc(firestore, 'patients', newPatientId);
-    setDocumentNonBlocking(patientDocRef, newPatientData, { merge: false });
+    const patientsCollection = collection(firestore, 'patients');
+    addDocumentNonBlocking(patientsCollection, newPatientData);
   };
 
   const addBed = (ward: 'General' | 'ICU' | 'Maternity') => {
