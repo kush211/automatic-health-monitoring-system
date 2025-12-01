@@ -60,17 +60,15 @@ export default function NewPatientPage() {
         primaryDoctorId: formData.primaryDoctorId,
     };
 
-    addPatient(newPatientData);
+    const newPatient = await addPatient(newPatientData);
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    toast({
-        title: "Patient Registered",
-        description: `${formData.name} has been successfully added to the system.`,
-    });
-
-    setIsSaving(false);
-    router.push('/patients');
+    if (newPatient) {
+        const patientIdNumber = newPatient.patientId.split('-')[1];
+        router.push(`/patients/${patientIdNumber}`);
+    } else {
+        // Handle case where patient creation failed
+        setIsSaving(false);
+    }
   };
 
   return (

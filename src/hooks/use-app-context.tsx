@@ -48,7 +48,7 @@ interface AppContextType {
   transferAppointment: (appointmentId: string, newDoctor: User) => void;
   updateAppointmentStatus: (appointmentId?: string, status?: Appointment['status']) => void;
   addAppointment: (payload: NewAppointmentPayload) => void;
-  addPatient: (payload: NewPatientPayload) => void;
+  addPatient: (payload: NewPatientPayload) => Promise<Patient | null>;
   addBed: (ward: 'General' | 'ICU' | 'Maternity') => void;
   assignPatientToBed: (bedId: string, patient: Patient) => void;
   dischargePatientFromBed: (bedId: string) => void;
@@ -265,17 +265,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
   
-  const addPatient = async (payload: NewPatientPayload) => {
+  const addPatient = async (payload: NewPatientPayload): Promise<Patient | null> => {
     if (!firestore) {
       console.error('addPatient: firestore not available');
-      return;
+      return null;
     }
   
     try {
       const patientId = `PID-${patients.length + initialPatients.length + 1}-${new Date().getFullYear()}`;
       const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
   
-      const newPatientData = {
+      const newPatientData: Omit<Patient, 'id'> = {
         ...payload,
         patientId,
         primaryDoctorName: primaryDoctor?.name || 'Unassigned',
@@ -287,17 +287,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   
       const patientsCollection = collection(firestore, 'patients');
   
-      // Use addDoc directly and await the result so you catch errors
       const docRef = await addDoc(patientsCollection, newPatientData);
       console.log('Patient written, docId=', docRef.id);
-  
-      // Optional: optimistic local update so UI shows immediately
-      setPatients(prev => [{ id: docRef.id, ...newPatientData } as Patient, ...prev]);
+      
+      const newPatientWithId: Patient = { id: docRef.id, ...newPatientData };
+
+      setPatients(prev => [newPatientWithId, ...prev]);
   
       toast({
         title: 'Patient added',
         description: `${payload.name} (ID: ${patientId}) has been added.`,
       });
+      
+      return newPatientWithId;
   
     } catch (error) {
       console.error('addPatient failed:', error);
@@ -306,6 +308,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         description: String(error),
         variant: 'destructive',
       });
+      return null;
     }
   };
 
