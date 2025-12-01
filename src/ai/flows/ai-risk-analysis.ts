@@ -23,12 +23,15 @@ const AIRiskAnalysisInputSchema = z.object({
 });
 export type AIRiskAnalysisInput = z.infer<typeof AIRiskAnalysisInputSchema>;
 
+const RiskFactorScoreSchema = z.object({
+  factor: z.string().describe('The name of the risk factor (e.g., "Hypertension").'),
+  score: z.number().describe('A numerical score from 0 to 100 representing the contribution of this factor to the overall risk.'),
+  description: z.string().describe('A brief explanation of why this factor is a risk.'),
+});
+
 const AIRiskAnalysisOutputSchema = z.object({
-  riskLevel: z.enum(['High', 'Medium', 'Low']).describe('The risk level.'),
-  primaryRiskFactors: z.array(z.string()).describe('The primary risk factors.'),
-  supportingEvidence: z
-    .array(z.string())
-    .describe('The supporting evidence for the risk factors.'),
+  riskLevel: z.enum(['High', 'Medium', 'Low']).describe('The overall assessed risk level.'),
+  riskFactors: z.array(RiskFactorScoreSchema).describe('A list of primary risk factors and their individual scores.'),
   actionableRecommendation: z
     .string()
     .describe('An actionable recommendation based on the risk analysis.'),
@@ -49,7 +52,7 @@ const aiRiskAnalysisPrompt = ai.definePrompt({
   output: {schema: AIRiskAnalysisOutputSchema},
   prompt: `You are an AI assistant designed to analyze patient medical history and identify potential risks.
 
-  Analyze the following patient medical history, vitals, and lab reports to determine the risk level, primary risk factors, supporting evidence, and actionable recommendations.
+  Analyze the following patient medical history, vitals, and lab reports to determine the risk level, primary risk factors with scores, and actionable recommendations.
 
   Patient Medical History:
   {{#if consentGiven}}
@@ -58,7 +61,7 @@ const aiRiskAnalysisPrompt = ai.definePrompt({
   Patient data cannot be accessed without consent.
   {{/if}}
 
-  Provide the output in JSON format.
+  Provide the output in JSON format. The risk factor scores should be between 0 and 100.
   `,
 });
 
@@ -72,8 +75,7 @@ const aiRiskAnalysisFlow = ai.defineFlow(
     if (!input.consentGiven) {
       return {
         riskLevel: 'Low',
-        primaryRiskFactors: [],
-        supportingEvidence: [],
+        riskFactors: [],
         actionableRecommendation: 'Patient consent is required for risk analysis.',
         modelVersion: 'N/A',
         timestamp: new Date().toISOString(),

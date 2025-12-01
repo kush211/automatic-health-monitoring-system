@@ -1,6 +1,7 @@
 
 "use client";
 
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, LabelList } from "recharts";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import type { AIRiskAnalysisOutput } from "@/ai/flows/ai-risk-analysis";
 import { HeartPulse, ListChecks, Wand2, RefreshCw } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface RiskAnalysisModalProps {
   isOpen: boolean;
@@ -48,9 +50,23 @@ export function RiskAnalysisModal({
     }
   };
 
+  const chartData = analysisResult?.riskFactors || [];
+  const chartConfig = {
+    score: {
+      label: "Score",
+    },
+  };
+
+  const fillByScore = (score: number) => {
+    if (score > 75) return "hsl(var(--destructive))";
+    if (score > 50) return "hsl(var(--secondary))";
+    return "hsl(var(--primary))";
+  }
+
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl bg-card">
+      <DialogContent className="max-w-4xl h-[80vh] flex flex-col bg-card">
         <DialogHeader>
           <DialogTitle className="text-2xl font-headline">
             Risk Analysis for {patientName}
@@ -63,7 +79,7 @@ export function RiskAnalysisModal({
 
         <Separator />
         
-        <ScrollArea className="max-h-[60vh] pr-6">
+        <ScrollArea className="flex-1 min-h-0 pr-6 -mr-6">
           <div className="space-y-6 p-1">
             <div className="flex justify-between items-center">
                {isLoading ? (
@@ -84,41 +100,74 @@ export function RiskAnalysisModal({
               <div className="grid md:grid-cols-2 gap-8 mt-4">
                 <div>
                   <Skeleton className="h-6 w-48 mb-4" />
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-5/6 mb-2" />
-                  <Skeleton className="h-4 w-4/5 mb-2" />
+                  <Skeleton className="h-56 w-full" />
                 </div>
                 <div>
                   <Skeleton className="h-6 w-48 mb-4" />
                   <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-full mb-2" />
                   <Skeleton className="h-4 w-5/6 mb-2" />
+                  <Skeleton className="h-4 w-4/5 mb-2" />
                 </div>
               </div>
             ) : (
               analysisResult && (
                 <div className="grid md:grid-cols-2 gap-8 mt-4">
                   <div className="space-y-2">
-                    <h4 className="flex items-center gap-2 font-semibold">
+                     <h4 className="flex items-center gap-2 font-semibold">
                       <HeartPulse className="h-5 w-5 text-primary" />
                       Primary Risk Factors
                     </h4>
-                    <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                      {analysisResult.primaryRiskFactors.map((factor, i) => (
-                        <li key={i}>{factor}</li>
-                      ))}
-                    </ul>
+                    {chartData.length > 0 ? (
+                       <ChartContainer config={chartConfig} className="h-56 w-full">
+                        <ResponsiveContainer>
+                          <BarChart
+                            layout="vertical"
+                            data={chartData}
+                            margin={{ left: 10, right: 30 }}
+                          >
+                            <CartesianGrid horizontal={false} />
+                            <YAxis
+                              dataKey="factor"
+                              type="category"
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 12 }}
+                              width={100}
+                              className="capitalize"
+                            />
+                            <XAxis dataKey="score" type="number" hide />
+                            <ChartTooltip
+                              cursor={false}
+                              content={<ChartTooltipContent indicator="dot" />}
+                            />
+                            <Bar dataKey="score" radius={4}>
+                              <LabelList dataKey="score" position="right" offset={8} className="fill-foreground" fontSize={12} />
+                              {chartData.map((entry, index) => (
+                                <rect key={`cell-${index}`} fill={fillByScore(entry.score)} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </ChartContainer>
+                    ) : (
+                       <p className="text-muted-foreground text-sm">No risk factors identified.</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <h4 className="flex items-center gap-2 font-semibold">
                       <ListChecks className="h-5 w-5 text-primary" />
-                      Supporting Evidence
+                      Factor Details
                     </h4>
-                    <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                      {analysisResult.supportingEvidence.map((evidence, i) => (
-                        <li key={i}>{evidence}</li>
-                      ))}
-                    </ul>
+                    <ScrollArea className="h-56">
+                      <ul className="space-y-3 pr-4">
+                        {analysisResult.riskFactors.map((factor, i) => (
+                          <li key={i} className="text-sm">
+                            <strong className="capitalize">{factor.factor} ({factor.score}):</strong>
+                            <span className="text-muted-foreground ml-1">{factor.description}</span>
+                            </li>
+                        ))}
+                      </ul>
+                    </ScrollArea>
                   </div>
                 </div>
               )
