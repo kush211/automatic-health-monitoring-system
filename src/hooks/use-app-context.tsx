@@ -27,11 +27,19 @@ const initialBeds: Bed[] = [
   },
 ];
 
+interface NewAppointmentPayload {
+    patient: Patient;
+    doctor: User;
+    dateTime: string;
+    status?: 'Scheduled' | 'Arrived';
+}
+
 interface AppContextType {
   appointments: Appointment[];
   beds: Bed[];
   dischargedPatientsForBilling: Patient[];
   transferAppointment: (appointmentId: string, newDoctor: User) => void;
+  addAppointment: (payload: NewAppointmentPayload) => void;
   addBed: (ward: 'General' | 'ICU' | 'Maternity') => void;
   assignPatientToBed: (bedId: string, patient: Patient) => void;
   dischargePatientFromBed: (bedId: string) => void;
@@ -53,6 +61,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : app
       )
     );
+  };
+  
+  const addAppointment = ({ patient, doctor, dateTime, status = 'Scheduled' }: NewAppointmentPayload) => {
+    const newAppointment: Appointment = {
+        appointmentId: `APP-${Date.now()}`,
+        patientId: patient.patientId,
+        patientName: patient.name,
+        patientAvatarUrl: patient.avatarUrl,
+        doctorId: doctor.uid,
+        doctorName: doctor.name,
+        dateTime,
+        status,
+        createdBy: 'rec1', // Hardcoded for demo
+        createdAt: new Date().toISOString(),
+    };
+    setAppointments(prev => [...prev, newAppointment]);
   };
   
   const addBed = (ward: 'General' | 'ICU' | 'Maternity') => {
@@ -117,6 +141,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     beds,
     dischargedPatientsForBilling,
     transferAppointment,
+    addAppointment,
     addBed,
     assignPatientToBed,
     dischargePatientFromBed,

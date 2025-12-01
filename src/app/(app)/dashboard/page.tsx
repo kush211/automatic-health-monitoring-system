@@ -41,18 +41,29 @@ import { KpiCard } from '@/components/kpi-card';
 import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppContext } from '@/hooks/use-app-context';
-import { isSameDay, isBefore, getHours } from 'date-fns';
+import { isSameDay, getHours } from 'date-fns';
 import { doctors } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns-tz';
+import { useRouter } from 'next/navigation';
+import { WalkInCheckInModal } from '@/components/walkin-checkin-modal';
+import { PrintTokenModal } from '@/components/print-token-modal';
+import type { Appointment } from '@/lib/types';
+
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { appointments } = useAppContext();
+  const router = useRouter();
+
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [doctorFilter, setDoctorFilter] = useState('all');
   const [timeFilter, setTimeFilter] = useState('all-day');
+
+  const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
+  const [isPrintTokenModalOpen, setIsPrintTokenModalOpen] = useState(false);
+  const [appointmentForToken, setAppointmentForToken] = useState<Appointment | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -146,10 +157,15 @@ export default function DashboardPage() {
     }
   };
 
+  const handleOpenPrintToken = (app: Appointment) => {
+    setAppointmentForToken(app);
+    setIsPrintTokenModalOpen(true);
+  }
 
   if (!user) return null;
 
   return (
+    <>
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
@@ -177,26 +193,26 @@ export default function DashboardPage() {
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search patient by name, ID, phone..."
+                placeholder="Search patient by name..."
                 className="pl-10 w-full"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button className="flex-1 sm:flex-initial">
+              <Button className="flex-1 sm:flex-initial" onClick={() => router.push('/patients/new')}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 New Patient
               </Button>
-              <Button variant="outline" className="flex-1 sm:flex-initial">
+              <Button variant="outline" className="flex-1 sm:flex-initial" onClick={() => router.push('/book-appointment')}>
                 <Book className="mr-2 h-4 w-4" />
                 Book Appointment
               </Button>
-              <Button variant="outline" className="flex-1 sm:flex-initial">
+              <Button variant="outline" className="flex-1 sm:flex-initial" onClick={() => setIsWalkInModalOpen(true)}>
                 <UserCheck className="mr-2 h-4 w-4" />
                 Walk-in Check-in
               </Button>
-              <Button variant="outline" className="flex-1 sm:flex-initial">
+              <Button variant="outline" className="flex-1 sm:flex-initial" onClick={() => handleOpenPrintToken(filteredAppointments[0])} disabled={filteredAppointments.length === 0}>
                 <Printer className="mr-2 h-4 w-4" />
                 Print Token
               </Button>
@@ -316,7 +332,18 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    <WalkInCheckInModal
+        isOpen={isWalkInModalOpen}
+        onClose={() => setIsWalkInModalOpen(false)}
+    />
+    {appointmentForToken && (
+        <PrintTokenModal
+            isOpen={isPrintTokenModalOpen}
+            onClose={() => setIsPrintTokenModalOpen(false)}
+            appointment={appointmentForToken}
+            queueNumber={todaysAppointments.findIndex(a => a.appointmentId === appointmentForToken.appointmentId) + 1}
+        />
+    )}
+    </>
   );
 }
-
-    
