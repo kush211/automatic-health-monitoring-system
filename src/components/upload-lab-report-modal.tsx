@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { UploadCloud } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 interface UploadLabReportModalProps {
   isOpen: boolean;
@@ -33,7 +33,7 @@ export function UploadLabReportModal({
   onReportAdded,
 }: UploadLabReportModalProps) {
   const [reportName, setReportName] = useState("");
-  const [reportDate, setReportDate] = useState<Date | undefined>(new Date());
+  const [reportDate, setReportDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [fileName, setFileName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
@@ -60,7 +60,7 @@ export function UploadLabReportModal({
 
     const newReport = {
       reportName,
-      date: format(reportDate, "yyyy-MM-dd"),
+      date: reportDate,
     };
 
     onReportAdded(newReport);
@@ -73,14 +73,14 @@ export function UploadLabReportModal({
     
     // Reset state
     setReportName("");
-    setReportDate(new Date());
+    setReportDate(format(new Date(), 'yyyy-MM-dd'));
     setFileName("");
   };
 
   const handleClose = () => {
      // Reset state on close
     setReportName("");
-    setReportDate(new Date());
+    setReportDate(format(new Date(), 'yyyy-MM-dd'));
     setFileName("");
     onClose();
   }
@@ -114,9 +114,13 @@ export function UploadLabReportModal({
             <Label htmlFor="report-date" className="text-right">
               Report Date
             </Label>
-            <div className="col-span-3">
-              <ModalDatePicker date={reportDate} setDate={setReportDate} />
-            </div>
+            <Input
+              id="report-date"
+              type="date"
+              value={reportDate}
+              onChange={(e) => setReportDate(e.target.value)}
+              className="col-span-3"
+            />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="file-upload" className="text-right">
@@ -147,20 +151,6 @@ export function UploadLabReportModal({
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
-  );
-}
-
-
-// A modified date picker to be used within the modal
-function ModalDatePicker({ date, setDate }: { date?: Date, setDate: (date?: Date) => void }) {
-  return (
-    <Dialog>
-       <Input type="date" 
-              value={date ? format(date, 'yyyy-MM-dd') : ''}
-              onChange={(e) => setDate(e.target.value ? new Date(e.target.value) : undefined)}
-              className="w-full"
-       />
     </Dialog>
   );
 }
