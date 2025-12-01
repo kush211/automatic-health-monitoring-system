@@ -2,7 +2,7 @@
 'use client';
 
 import type { Appointment } from '@/lib/types';
-import { format, utcToZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns-tz';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -38,11 +38,6 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
         return <Badge variant="outline">Unknown</Badge>;
     }
   };
-
-  const getTimezone = () => {
-    // On the server, this will be the server's timezone. On the client, the user's timezone.
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
-  }
 
   return (
     <div className="space-y-4 px-2 sm:px-0">
