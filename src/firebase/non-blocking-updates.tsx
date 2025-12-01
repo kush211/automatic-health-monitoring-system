@@ -1,3 +1,4 @@
+
 'use client';
     
 import {
@@ -22,7 +23,7 @@ export function setDocumentNonBlocking(docRef: DocumentReference, data: any, opt
       'permission-error',
       new FirestorePermissionError({
         path: docRef.path,
-        operation: 'write', // or 'create'/'update' based on options
+        operation: options && 'merge' in options ? 'update' : 'create',
         requestResourceData: data,
       })
     )
@@ -48,6 +49,7 @@ export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
         })
       )
     });
+  // Do not await the promise here. Let the caller decide if they need to.
   return promise;
 }
 

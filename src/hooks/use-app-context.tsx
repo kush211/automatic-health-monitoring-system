@@ -1,13 +1,16 @@
 
+
 'use client';
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
-import { initialPatients, doctors, appointments as initialAppointments, allUsers, kpiData, recentActivities } from '@/lib/data';
+import { initialPatients, doctors, appointments as initialAppointments, allUsers } from '@/lib/data';
 import { useCollection, useUser, useMemoFirebase } from '@/firebase';
-import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
 import { useToast } from './use-toast';
+import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+
 
 interface NewAppointmentPayload {
     patient: Patient;
@@ -80,45 +83,33 @@ const useDataSeeder = () => {
         toast({ title: "Database Seeding Started", description: "Populating Firestore with initial data..." });
 
         try {
-            const batch = writeBatch(firestore);
-
-            // Seed Patients
             const patientsCollection = collection(firestore, 'patients');
             initialPatients.forEach(patient => {
-                const docRef = doc(patientsCollection);
-                batch.set(docRef, patient);
+                addDocumentNonBlocking(patientsCollection, patient);
             });
 
-            // Seed Appointments
             const appointmentsCollection = collection(firestore, 'appointments');
             initialAppointments.forEach(appointment => {
-                const docRef = doc(appointmentsCollection);
-                batch.set(docRef, appointment);
+                addDocumentNonBlocking(appointmentsCollection, appointment);
             });
 
-            // Seed Users
             const usersCollection = collection(firestore, 'users');
             allUsers.forEach(user => {
-                const docRef = doc(usersCollection, user.uid); // Use UID as doc ID
-                batch.set(docRef, user);
+                const userDocRef = doc(usersCollection, user.uid);
+                setDocumentNonBlocking(userDocRef, user, { merge: true });
             });
             
-            // Seed Beds (Create some initial beds)
             const bedsCollection = collection(firestore, 'beds');
             const wards = ['General', 'ICU', 'Maternity'];
             let bedCounter = 1;
             wards.forEach(ward => {
                 for(let i=0; i< (ward === 'ICU' ? 5 : 10); i++) {
                     const bedId = `${ward.charAt(0)}-${100+bedCounter++}`;
-                    const docRef = doc(bedsCollection);
-                    batch.set(docRef, { bedId, ward, status: 'Available' });
+                    addDocumentNonBlocking(bedsCollection, { bedId, ward, status: 'Available' });
                 }
             });
 
-
-            await batch.commit();
-
-            toast({ title: "Database Seeding Successful", description: "Firestore has been populated." });
+            toast({ title: "Database Seeding In Progress", description: "Your data is being added to Firestore. It will appear shortly." });
             setIsSeedingComplete(true);
         } catch (error) {
             console.error("Error seeding database:", error);
@@ -139,13 +130,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Conditionally create refs only when user is logged in
   const patientsRef = useMemoFirebase(() => authUser ? collection(firestore, 'patients') : null, [firestore, authUser]);
-  const { data: patientsData, isLoading: isPatientsLoading } = useCollection<Patient>(patientsRef);
+  const { data: patientsData } = useCollection<Patient>(patientsRef);
 
   const appointmentsRef = useMemoFirebase(() => authUser ? collection(firestore, 'appointments') : null, [firestore, authUser]);
-  const { data: appointmentsData, isLoading: isAppointmentsLoading } = useCollection<Appointment>(appointmentsRef);
+  const { data: appointmentsData } = useCollection<Appointment>(appointmentsRef);
   
   const bedsRef = useMemoFirebase(() => authUser ? collection(firestore, 'beds') : null, [firestore, authUser]);
-  const { data: bedsData, isLoading: isBedsLoading } = useCollection<Bed>(bedsRef);
+  const { data: bedsData } = useCollection<Bed>(bedsRef);
 
   const [patients, setPatients] = useState<Patient[]>(initialPatients);
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
@@ -153,15 +144,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
   useEffect(() => {
-    if (patientsData) setPatients(patientsData);
+    if (patientsData) {
+      setPatients(patientsData as Patient[]);
+    } else {
+        setPatients(initialPatients);
+    }
   }, [patientsData]);
 
   useEffect(() => {
-    if (appointmentsData) setAppointments(appointmentsData);
+    if (appointmentsData) {
+      setAppointments(appointmentsData as Appointment[]);
+    } else {
+        setAppointments(initialAppointments);
+    }
   }, [appointmentsData]);
   
   useEffect(() => {
-    if (bedsData) setBeds(bedsData);
+    if (bedsData) {
+      setBeds(bedsData as Bed[]);
+    } else {
+        setBeds([]);
+    }
   }, [bedsData]);
 
 
@@ -193,22 +196,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [settings]);
 
-  const transferAppointment = async (appointmentId: string, newDoctor: User) => {
+  const transferAppointment = (appointmentId: string, newDoctor: User) => {
     const appointmentRef = doc(firestore, 'appointments', appointmentId);
-    await updateDoc(appointmentRef, {
+    updateDoc(appointmentRef, {
         doctorId: newDoctor.uid,
         doctorName: newDoctor.name,
     });
   };
 
-  const updateAppointmentStatus = async (appointmentId: string, status: Appointment['status']) => {
+  const updateAppointmentStatus = (appointmentId: string, status: Appointment['status']) => {
     const appointmentRef = doc(firestore, 'appointments', appointmentId);
-    await updateDoc(appointmentRef, { status });
+    updateDoc(appointmentRef, { status });
   };
   
-  const addAppointment = async ({ patient, doctor, dateTime, status = 'Scheduled' }: NewAppointmentPayload) => {
+  const addAppointment = ({ patient, doctor, dateTime, status = 'Scheduled' }: NewAppointmentPayload) => {
     const appointmentsCollection = collection(firestore, 'appointments');
-    await addDoc(appointmentsCollection, {
+    addDocumentNonBlocking(appointmentsCollection, {
         patientId: patient.patientId,
         patientName: patient.name,
         patientAvatarUrl: patient.avatarUrl,
@@ -221,7 +224,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
   
-  const addPatient = async (payload: NewPatientPayload) => {
+  const addPatient = (payload: NewPatientPayload) => {
     const newPatientId = `PID-${patients.length + 1}-${new Date().getFullYear()}`;
     const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
     const newPatientData = {
@@ -236,10 +239,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     const patientsCollection = collection(firestore, 'patients');
-    await addDoc(patientsCollection, newPatientData);
+    addDocumentNonBlocking(patientsCollection, newPatientData);
   };
 
-  const addBed = async (ward: 'General' | 'ICU' | 'Maternity') => {
+  const addBed = (ward: 'General' | 'ICU' | 'Maternity') => {
     const newBedId = `Bed ${Math.floor(Math.random() * 900) + 100}`;
     const newBedData = {
       bedId: newBedId,
@@ -247,14 +250,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       status: 'Available',
     };
     const bedsCollection = collection(firestore, 'beds');
-    await addDoc(bedsCollection, newBedData);
+    addDocumentNonBlocking(bedsCollection, newBedData);
   };
 
-  const assignPatientToBed = async (bedId: string, patient: Patient) => {
+  const assignPatientToBed = (bedId: string, patient: Patient) => {
     const bed = beds.find(b => b.id === bedId);
     if (!bed) return;
     const bedRef = doc(firestore, 'beds', bed.id);
-    await updateDoc(bedRef, {
+    updateDoc(bedRef, {
         status: 'Occupied',
         assignedPatientId: patient.patientId,
         assignedPatientName: patient.name,
