@@ -9,7 +9,6 @@ import { AddBedModal } from '@/components/add-bed-modal';
 import { AssignPatientModal } from '@/components/assign-patient-modal';
 import { DischargeSummaryModal } from '@/components/discharge-summary-modal';
 import type { Bed, Patient } from '@/lib/types';
-import { patients as allPatients } from '@/lib/data';
 import { Separator } from '@/components/ui/separator';
 import type { GenerateDischargeSummaryOutput } from '@/ai/flows/generate-discharge-summary';
 import { generateDischargeSummary } from '@/ai/flows/generate-discharge-summary';
@@ -18,7 +17,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function BedsPage() {
-  const { beds, addBed, assignPatientToBed, dischargePatientFromBed } = useAppContext();
+  const { beds, addBed, assignPatientToBed, dischargePatientFromBed, patients } = useAppContext();
   const { role } = useAuth();
   const { toast } = useToast();
   const [isAddBedModalOpen, setIsAddBedModalOpen] = useState(false);
@@ -210,7 +209,7 @@ export default function BedsPage() {
         isOpen={isAssignPatientModalOpen}
         onClose={() => setIsAssignPatientModalOpen(false)}
         onAssignPatient={handleAssignPatient}
-        patients={allPatients}
+        patients={patients}
         bedId={selectedBed?.bedId}
       />
       {bedToDischarge && (role === 'Doctor' || role === 'Nurse') && (

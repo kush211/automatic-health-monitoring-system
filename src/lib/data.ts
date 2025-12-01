@@ -64,7 +64,7 @@ export const allUsers: User[] = [
 
 export const doctors: User[] = allUsers.filter(u => u.role === 'Doctor');
 
-export const patients: Patient[] = [
+export const initialPatients: Patient[] = [
   {
     patientId: "PID-1-2024",
     name: "Aarav Sharma",

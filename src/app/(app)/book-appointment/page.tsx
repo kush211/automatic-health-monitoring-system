@@ -12,13 +12,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/hooks/use-app-context';
-import { patients as allPatients, doctors } from '@/lib/data';
+import { doctors } from '@/lib/data';
 import type { Patient, User as UserType } from '@/lib/types';
 
 export default function BookAppointmentPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { addAppointment } = useAppContext();
+  const { addAppointment, patients } = useAppContext();
 
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<UserType | null>(null);
@@ -105,7 +105,7 @@ export default function BookAppointmentPage() {
                                 <CommandList>
                                 <CommandEmpty>No patients found.</CommandEmpty>
                                 <CommandGroup>
-                                    {allPatients.map((patient) => (
+                                    {patients.map((patient) => (
                                     <CommandItem key={patient.patientId} value={patient.name} onSelect={() => setSelectedPatient(patient)}>
                                         <Avatar className="mr-2 h-8 w-8">
                                         <AvatarImage src={patient.avatarUrl} alt={patient.name} />

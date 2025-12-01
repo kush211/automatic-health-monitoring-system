@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
-import { appointments as initialAppointments, patients as allPatients } from '@/lib/data';
+import { appointments as initialAppointments, initialPatients, doctors } from '@/lib/data';
 
 const initialBeds: Bed[] = [
   {
@@ -39,15 +39,26 @@ interface NewAppointmentPayload {
     status?: 'Scheduled' | 'Arrived';
 }
 
+interface NewPatientPayload {
+    name: string;
+    dob: string;
+    gender: 'Male' | 'Female' | 'Other';
+    phone: string;
+    address: string;
+    primaryDoctorId: string;
+}
+
 interface AppContextType {
   appointments: Appointment[];
   beds: Bed[];
+  patients: Patient[];
   dischargedPatientsForBilling: Patient[];
   billedPatients: Bill[];
   settings: AppSettings;
   transferAppointment: (appointmentId: string, newDoctor: User) => void;
   updateAppointmentStatus: (appointmentId: string, status: Appointment['status']) => void;
   addAppointment: (payload: NewAppointmentPayload) => void;
+  addPatient: (payload: NewPatientPayload) => void;
   addBed: (ward: 'General' | 'ICU' | 'Maternity') => void;
   assignPatientToBed: (bedId: string, patient: Patient) => void;
   dischargePatientFromBed: (bedId: string) => void;
@@ -74,6 +85,7 @@ const getInitialState = <T,>(key: string, fallback: T): T => {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [appointments, setAppointments] = useState<Appointment[]>(() => getInitialState('appointments', initialAppointments));
   const [beds, setBeds] = useState<Bed[]>(() => getInitialState('beds', initialBeds));
+  const [patients, setPatients] = useState<Patient[]>(() => getInitialState('patients', initialPatients));
   const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>(() => getInitialState('dischargedPatients', []));
   const [billedPatients, setBilledPatients] = useState<Bill[]>(() => getInitialState('billedPatients', []));
   const [settings, setSettings] = useState<AppSettings>(() => getInitialState('appSettings', initialSettings));
@@ -93,6 +105,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.error("Failed to save beds to localStorage:", error);
     }
   }, [beds]);
+
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('patients', JSON.stringify(patients));
+    } catch (error) {
+        console.error("Failed to save patients to localStorage:", error);
+    }
+  }, [patients]);
 
   useEffect(() => {
     try {
@@ -153,6 +173,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAppointments(prev => [...prev, newAppointment]);
   };
   
+  const addPatient = (payload: NewPatientPayload) => {
+    const newPatientId = `PID-${patients.length + 1}-${new Date().getFullYear()}`;
+    const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
+    const newPatient: Patient = {
+        ...payload,
+        patientId: newPatientId,
+        primaryDoctorName: primaryDoctor?.name || 'Unassigned',
+        avatarUrl: `https://picsum.photos/seed/${newPatientId}/100/100`,
+        consent_for_ai: true, // Defaulting to true for demo purposes
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+    };
+    setPatients(prev => [...prev, newPatient]);
+  };
+
   const addBed = (ward: 'General' | 'ICU' | 'Maternity') => {
     const newBedId = `Bed ${Math.floor(Math.random() * 900) + 100}`;
     const newBed: Bed = {
@@ -183,7 +218,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const dischargePatientFromBed = (bedId: string) => {
     const bedToDischarge = beds.find(b => b.bedId === bedId);
     if (bedToDischarge && bedToDischarge.assignedPatientId) {
-        const patientToBill = allPatients.find(p => p.patientId === bedToDischarge.assignedPatientId);
+        const patientToBill = patients.find(p => p.patientId === bedToDischarge.assignedPatientId);
         if (patientToBill && !dischargedPatientsForBilling.find(p => p.patientId === patientToBill.patientId)) {
             setDischargedPatientsForBilling(prev => [...prev, patientToBill]);
         }
@@ -229,11 +264,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearAllData = () => {
     window.localStorage.removeItem('appointments');
     window.localStorage.removeItem('beds');
+    window.localStorage.removeItem('patients');
     window.localStorage.removeItem('dischargedPatients');
     window.localStorage.removeItem('billedPatients');
     window.localStorage.removeItem('appSettings');
     setAppointments(initialAppointments);
     setBeds(initialBeds);
+    setPatients(initialPatients);
     setDischargedPatientsForBilling([]);
     setBilledPatients([]);
     setSettings(initialSettings);
@@ -243,12 +280,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = {
     appointments,
     beds,
+    patients,
     dischargedPatientsForBilling,
     billedPatients,
     settings,
     transferAppointment,
     updateAppointmentStatus,
     addAppointment,
+    addPatient,
     addBed,
     assignPatientToBed,
     dischargePatientFromBed,

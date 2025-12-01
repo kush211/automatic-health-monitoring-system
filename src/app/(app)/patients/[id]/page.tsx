@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { notFound, useParams } from 'next/navigation';
@@ -38,7 +39,6 @@ import {
   Download,
   FileStack,
 } from 'lucide-react';
-import { patients } from '@/lib/data';
 import { RiskAnalysisModal } from '@/components/risk-analysis-modal';
 import { SummaryModal } from '@/components/summary-modal';
 import { ChatModal } from '@/components/chat-modal';
@@ -97,7 +97,7 @@ type LabReport = typeof initialLabReports[0];
 export default function PatientDetailPage() {
   const params = useParams();
   const { role } = useAuth();
-  const { settings } = useAppContext();
+  const { settings, patients } = useAppContext();
   const id = params.id as string;
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AIRiskAnalysisOutput | null>(null);

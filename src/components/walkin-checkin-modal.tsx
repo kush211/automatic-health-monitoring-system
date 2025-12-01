@@ -23,7 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserCheck, Stethoscope } from "lucide-react";
 import type { Patient, User } from "@/lib/types";
-import { patients as allPatients, doctors } from "@/lib/data";
+import { doctors } from "@/lib/data";
 import { useAppContext } from "@/hooks/use-app-context";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,7 +36,7 @@ export function WalkInCheckInModal({
   isOpen,
   onClose,
 }: WalkInCheckInModalProps) {
-  const { addAppointment } = useAppContext();
+  const { addAppointment, patients } = useAppContext();
   const { toast } = useToast();
 
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -117,7 +117,7 @@ export function WalkInCheckInModal({
                         <CommandList>
                         <CommandEmpty>No patients found.</CommandEmpty>
                         <CommandGroup>
-                            {allPatients.map((patient) => (
+                            {patients.map((patient) => (
                             <CommandItem key={patient.patientId} value={patient.name} onSelect={() => setSelectedPatient(patient)}>
                                 <Avatar className="mr-2 h-8 w-8">
                                 <AvatarImage src={patient.avatarUrl} alt={patient.name} />
