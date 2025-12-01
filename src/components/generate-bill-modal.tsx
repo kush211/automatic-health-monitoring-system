@@ -25,18 +25,19 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import { FileText, Printer, CheckCircle, Stethoscope } from "lucide-react";
-import type { Patient, Bill, BillItem } from '@/lib/types';
+import type { Patient, BillItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { BillableServices } from '@/lib/services';
-import { useAppContext } from '@/hooks/use-app-context';
 import { collection, getDocs, getFirestore } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 
 interface GenerateBillModalProps {
   isOpen: boolean;
   onClose: () => void;
   patient: Patient;
-  onBillGenerated: (patientId: string) => void;
+  onBillGenerated: (patientId: string, billDetails: { subtotal: number, insuranceAdjustment: number, totalDue: number, items: BillItem[]}) => void;
 }
 
 export function GenerateBillModal({
@@ -51,7 +52,7 @@ export function GenerateBillModal({
   const [subtotal, setSubtotal] = useState(0);
   const [totalDue, setTotalDue] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const insuranceAdjustment = -20000; // Mock adjustment
+  const [insuranceAdjustment, setInsuranceAdjustment] = useState(-20000); 
 
   useEffect(() => {
     if (!isOpen) return;
@@ -100,7 +101,11 @@ export function GenerateBillModal({
     };
 
     fetchBillableServices();
-  }, [isOpen, patient, insuranceAdjustment]);
+  }, [isOpen, patient]);
+
+  useEffect(() => {
+    setTotalDue(subtotal + insuranceAdjustment);
+  }, [subtotal, insuranceAdjustment]);
 
 
   const handlePrint = () => {
@@ -125,7 +130,7 @@ export function GenerateBillModal({
   };
 
   const handleFinalizeBill = () => {
-    onBillGenerated(patient.patientId);
+    onBillGenerated(patient.patientId, { subtotal, insuranceAdjustment, totalDue, items: billItems });
   }
   
   return (
@@ -219,6 +224,17 @@ export function GenerateBillModal({
                 </Table>
               </div>
             )}
+            </div>
+            <div className="px-6 py-4 border-t">
+              <Label htmlFor="insurance-adjustment">Insurance Adjustment (₹)</Label>
+              <Input 
+                id="insurance-adjustment"
+                type="number"
+                value={insuranceAdjustment}
+                onChange={(e) => setInsuranceAdjustment(parseFloat(e.target.value) || 0)}
+                className="mt-2"
+                placeholder="e.g., -5000"
+              />
             </div>
         </ScrollArea>
 

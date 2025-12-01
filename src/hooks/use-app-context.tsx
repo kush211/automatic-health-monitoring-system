@@ -51,7 +51,7 @@ interface AppContextType {
   addBed: (ward: 'General' | 'ICU' | 'Maternity') => void;
   assignPatientToBed: (bedId: string, patient: Patient) => void;
   dischargePatientFromBed: (bedId: string) => void;
-  generateBillForPatient: (patientId: string) => void;
+  generateBillForPatient: (patientId: string, billDetails: { subtotal: number; insuranceAdjustment: number; totalDue: number; items: BillItem[] }) => void;
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   clearAllData: () => void;
 }
@@ -259,46 +259,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const generateBillForPatient = async (patientId: string) => {
+  const generateBillForPatient = (patientId: string, billDetails: { subtotal: number; insuranceAdjustment: number; totalDue: number; items: BillItem[] }) => {
     const patient = dischargedPatientsForBilling.find(p => p.patientId === patientId);
     if (!patient) return;
-
-    // 1. Fetch all billable services for the patient
-    const billableServicesRef = collection(firestore, 'patients', patientId, 'billable_services');
-    const servicesSnapshot = await getDocs(billableServicesRef);
     
-    let subtotal = 0;
-    const billItems: BillItem[] = [];
-
-    servicesSnapshot.forEach(doc => {
-        const service = doc.data();
-        const serviceInfo = BillableServices[service.serviceCode as keyof typeof BillableServices];
-        if (serviceInfo) {
-            const total = serviceInfo.unitPrice * service.quantity;
-            billItems.push({
-                name: serviceInfo.name,
-                unitPrice: serviceInfo.unitPrice,
-                qty: service.quantity,
-                total: total,
-            });
-            subtotal += total;
-        }
-    });
-
-    const insuranceAdjustment = -20000; // Mock adjustment
-    const totalDue = subtotal + insuranceAdjustment;
-
     const newBill: Bill = {
         id: `INV-${patient.patientId.slice(4, 8)}-${Date.now()}`,
         billId: `INV-${patient.patientId.slice(4, 8)}-${Date.now()}`,
         patientId: patient.patientId,
         patientName: patient.name,
-        items: billItems,
-        subtotal,
-        insuranceAdjustment,
-        totalDue,
+        items: billDetails.items,
+        subtotal: billDetails.subtotal,
+        insuranceAdjustment: billDetails.insuranceAdjustment,
+        totalDue: billDetails.totalDue,
         status: 'Paid',
-        generatedBy: 'rec1',
+        generatedBy: authUser?.uid || 'rec1',
         generatedAt: new Date().toISOString(),
     }
 

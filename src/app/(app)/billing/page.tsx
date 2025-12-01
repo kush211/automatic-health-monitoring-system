@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAppContext } from "@/hooks/use-app-context";
-import type { Patient } from "@/lib/types";
+import type { Patient, BillItem } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GenerateBillModal } from "@/components/generate-bill-modal";
 import { History } from "lucide-react";
@@ -38,7 +38,7 @@ export default function BillingPage() {
     setSelectedPatient(null);
   };
   
-  const handleBillGenerated = (patientId: string, billDetails: any) => {
+  const handleBillGenerated = (patientId: string, billDetails: { subtotal: number; insuranceAdjustment: number; totalDue: number; items: BillItem[] }) => {
     generateBillForPatient(patientId, billDetails);
     handleCloseBillModal();
   };
