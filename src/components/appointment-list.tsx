@@ -1,7 +1,8 @@
+
 'use client';
 
 import type { Appointment } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, utcToZonedTime } from 'date-fns-tz';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -38,6 +39,11 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
     }
   };
 
+  const getTimezone = () => {
+    // On the server, this will be the server's timezone. On the client, the user's timezone.
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+
   return (
     <div className="space-y-4 px-2 sm:px-0">
       {appointments
@@ -54,7 +60,7 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
                 <p className="font-semibold text-foreground">{appointment.patientName}</p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />
-                    <span>{format(new Date(appointment.dateTime), 'h:mm a')}</span>
+                    <span>{format(new Date(appointment.dateTime), 'h:mm a', { timeZone: 'UTC' })}</span>
                 </div>
               </div>
             </div>
@@ -91,3 +97,4 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
     </div>
   );
 }
+
