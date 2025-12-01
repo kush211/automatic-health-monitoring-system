@@ -1,11 +1,88 @@
 
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // TEMPORARILY OPEN for initial data seeding.
-    // TODO: Secure these rules after authentication is implemented.
-    match /{document=**} {
-      allow read, write: if true;
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
     }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isDoctor() {
+      return isSignedIn() && getRole() == 'Doctor';
+    }
+
+    function isNurse() {
+      return isSignedIn() && getRole() == 'Nurse';
+    }
+    
+    function isReceptionist() {
+        return isSignedIn() && getRole() == 'Receptionist';
+    }
+
+    function isAdmin() {
+      return isSignedIn() && getRole() == 'Admin';
+    }
+    
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Any signed-in user can read user profiles (to see doctor lists, etc.)
+      allow read: if isSignedIn();
+      // Only the user themselves can update their own profile
+      allow write: if isOwner(userId);
+    }
+
+    // Patients collection
+    match /patients/{patientId} {
+      // Doctors, Nurses, and Receptionists can read patient data.
+      allow read: if isDoctor() || isNurse() || isReceptionist();
+      // Doctors and Receptionists can create new patients.
+      allow create: if isDoctor() || isReceptionist();
+      // Only doctors can update patient info.
+      allow update: if isDoctor();
+      // Deleting patients should be a protected admin action, so deny for now.
+      allow delete: if false;
+    }
+    
+    // Patient Records subcollection
+    match /patients/{patientId}/records/{recordId} {
+        // Only doctors and nurses can read patient records
+        allow read: if isDoctor() || isNurse();
+        // Only doctors can create, update, or delete records
+        allow write: if isDoctor();
+    }
+
+    // Appointments collection
+    match /appointments/{appointmentId} {
+      // Any authenticated staff member can view appointments
+      allow read: if isDoctor() || isNurse() || isReceptionist();
+      // Doctors and Receptionists can create/update appointments
+      allow write: if isDoctor() || isReceptionist();
+    }
+
+    // Beds collection
+    match /beds/{bedId} {
+      // Any authenticated staff member can view bed status
+      allow read: if isDoctor() || isNurse() || isReceptionist();
+      // Only Doctors and Nurses can assign/discharge patients (write)
+      allow write: if isDoctor() || isNurse();
+    }
+    
+    // All other collections are protected by the default deny rule.
+    // We can add rules for bills, reports, etc., as we build those features.
   }
 }
