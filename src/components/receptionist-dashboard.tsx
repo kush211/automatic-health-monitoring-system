@@ -69,8 +69,6 @@ export function ReceptionistDashboard() {
     setMounted(true);
   }, []);
 
-  const today = useMemo(() => new Date(), []);
-
   const todaysAppointments = useMemo(() => {
     // A real app would fetch this for the current day.
     // For demo, we are filtering appointments for a specific hardcoded day.

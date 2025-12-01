@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +30,11 @@ export function PrintTokenModal({
   queueNumber
 }: PrintTokenModalProps) {
   const tokenRef = useRef(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const handlePrint = useReactToPrint({
     content: () => tokenRef.current,
@@ -73,7 +78,7 @@ export function PrintTokenModal({
                 <Separator className='my-4'/>
 
                 <div className='text-xs text-muted-foreground'>
-                    <p>Issued at: {format(new Date(), 'dd-MMM-yyyy, h:mm a')}</p>
+                    <p>Issued at: {mounted ? format(new Date(), 'dd-MMM-yyyy, h:mm a') : ''}</p>
                     <p className='mt-2'>Please wait for your token number to be displayed on the screen.</p>
                 </div>
             </div>

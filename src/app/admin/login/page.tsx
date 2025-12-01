@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,18 +20,22 @@ export default function AdminLoginPage() {
   const { toast } = useToast();
   const [pin, setPin] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleVerify = () => {
+    if (!mounted) return;
     setIsVerifying(true);
     if (pin === ADMIN_PIN) {
       toast({
         title: 'Access Granted',
         description: 'Welcome to the Administrator Panel.',
       });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('userRole', 'Admin');
-      }
-      router.push('/dashboard');
+      localStorage.setItem('userRole', 'Admin');
+      router.push('/admin/dashboard');
     } else {
       toast({
         title: 'Access Denied',
