@@ -6,7 +6,7 @@ import { createContext, useContext, useState, ReactNode, useEffect, useCallback 
 import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
 import { initialPatients, doctors, allUsers, appointments as initialAppointments } from '@/lib/data';
 import { useCollection, useUser, useMemoFirebase } from '@/firebase';
-import { collection, doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, updateDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
 import { useToast } from './use-toast';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -74,10 +74,21 @@ const useDataSeeder = () => {
     const { firestore } = useFirebase();
     const { toast } = useToast();
     const [isSeeding, setIsSeeding] = useState(false);
-    const [isSeedingComplete, setIsSeedingComplete] = useState(false);
+    const [isSeedingComplete, setIsSeedingComplete] = useState(() => getInitialState('seedingComplete', false));
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem('seedingComplete', JSON.stringify(isSeedingComplete));
+        } catch (error) {
+            console.error("Failed to save seeding status to localStorage:", error);
+        }
+    }, [isSeedingComplete]);
 
     const seedDatabase = useCallback(async () => {
-        if (isSeeding || isSeedingComplete) return;
+        if (isSeeding || isSeedingComplete) {
+            toast({ title: "Seeding Status", description: isSeeding ? "Seeding already in progress." : "Database has already been seeded.", variant: isSeeding ? 'default' : 'destructive' });
+            return;
+        }
 
         setIsSeeding(true);
         toast({ title: "Database Seeding Started", description: "Populating Firestore with initial data..." });
@@ -125,10 +136,10 @@ const useDataSeeder = () => {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { firestore } = useFirebase();
-  const { user: authUser, isUserLoading } = useUser();
+  const { user: authUser } = useUser();
   const { DataSeeder, isSeeding, isSeedingComplete } = useDataSeeder();
+  const { toast } = useToast();
 
-  // Conditionally create refs only when user is logged in
   const patientsRef = useMemoFirebase(() => authUser ? collection(firestore, 'patients') : null, [firestore, authUser]);
   const { data: patientsData } = useCollection<Patient>(patientsRef);
 
@@ -299,18 +310,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSettings(prev => ({ ...prev, ...newSettings }));
   }
   
-  const clearAllData = () => {
-    // This is a dangerous operation. In a real app, this would be heavily protected.
-    // For the demo, we will clear collections.
-    console.log("Clearing data is not fully implemented for Firestore yet. It will only clear local state.");
-    window.localStorage.removeItem('dischargedPatients');
-    window.localStorage.removeItem('billedPatients');
-    window.localStorage.removeItem('appSettings');
-    setDischargedPatientsForBilling([]);
-    setBilledPatients([]);
-    setSettings(initialSettings);
-    // To clear firestore, you would need to delete documents one by one.
-    // This is a complex operation and is omitted for this demo.
+  const clearAllData = async () => {
+    toast({ title: "Clearing Data...", description: "Removing all data from Firestore collections and local storage." });
+    try {
+        const collectionsToDelete = ['patients', 'appointments', 'beds', 'users'];
+        const batch = writeBatch(firestore);
+
+        for (const collectionName of collectionsToDelete) {
+            const collectionRef = collection(firestore, collectionName);
+            const snapshot = await getDocs(collectionRef);
+            snapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+        }
+        
+        await batch.commit();
+
+        // Clear local state as well
+        window.localStorage.removeItem('dischargedPatients');
+        window.localStorage.removeItem('billedPatients');
+        window.localStorage.removeItem('appSettings');
+        window.localStorage.removeItem('seedingComplete');
+        setDischargedPatientsForBilling([]);
+        setBilledPatients([]);
+        setSettings(initialSettings);
+        
+        toast({ title: "Data Cleared Successfully", description: "Please refresh the page to see the changes." });
+        // Force a reload to reset all component states
+        window.location.reload();
+
+    } catch (error) {
+        console.error("Error clearing data:", error);
+        toast({ title: "Error Clearing Data", description: "Could not clear all data. See console for details.", variant: 'destructive' });
+    }
   };
 
 
