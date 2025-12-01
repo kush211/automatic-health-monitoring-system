@@ -29,7 +29,6 @@ import { useAuth } from "@/hooks/use-auth";
 const menuItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/patients", label: "Patients", icon: Users },
-  { href: "/beds", label: "Beds", icon: Bed },
   { href: "/appointments", label: "Appointments", icon: Calendar },
 ];
 

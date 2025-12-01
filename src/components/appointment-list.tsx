@@ -15,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/hooks/use-auth';
 
 interface AppointmentListProps {
   appointments: Appointment[];
@@ -24,6 +25,8 @@ interface AppointmentListProps {
 }
 
 export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, showTimes = false }: AppointmentListProps) {
+  const { role } = useAuth();
+    
   if (appointments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -91,7 +94,7 @@ export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, sho
                         </Link>
                     </Button>
                 )}
-                 {appointment.status === 'Scheduled' && (
+                 {appointment.status === 'Scheduled' && role === 'Doctor' && (
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">

@@ -14,9 +14,11 @@ import { Separator } from '@/components/ui/separator';
 import type { GenerateDischargeSummaryOutput } from '@/ai/flows/generate-discharge-summary';
 import { generateDischargeSummary } from '@/ai/flows/generate-discharge-summary';
 import { useAppContext } from '@/hooks/use-app-context';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function BedsPage() {
   const { beds, addBed, assignPatientToBed, dischargePatientFromBed } = useAppContext();
+  const { role } = useAuth();
   const [isAddBedModalOpen, setIsAddBedModalOpen] = useState(false);
   const [isAssignPatientModalOpen, setIsAssignPatientModalOpen] = useState(false);
   const [selectedBed, setSelectedBed] = useState<Bed | null>(null);
@@ -97,10 +99,12 @@ export default function BedsPage() {
             Overview of all hospital beds and their occupancy status.
           </p>
         </div>
-        <Button onClick={() => setIsAddBedModalOpen(true)}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Bed
-        </Button>
+        {role === 'Doctor' && (
+            <Button onClick={() => setIsAddBedModalOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Bed
+            </Button>
+        )}
       </div>
 
       <div className="space-y-8">
@@ -139,13 +143,15 @@ export default function BedsPage() {
                             ID: {bed.assignedPatientId}
                           </p>
                         </div>
-                        <Button
-                          variant="outline"
-                          className="mt-2 bg-background hover:bg-muted"
-                          onClick={() => handleOpenDischargeModal(bed)}
-                        >
-                          Discharge Patient
-                        </Button>
+                        {role === 'Doctor' && (
+                            <Button
+                            variant="outline"
+                            className="mt-2 bg-background hover:bg-muted"
+                            onClick={() => handleOpenDischargeModal(bed)}
+                            >
+                            Discharge Patient
+                            </Button>
+                        )}
                       </CardContent>
                     </Card>
                   ) : (
@@ -164,14 +170,16 @@ export default function BedsPage() {
                                 Available
                             </p>
                         </div>
-                        <Button
-                          variant="outline"
-                          className="mt-2 bg-background hover:bg-muted"
-                          onClick={() => handleOpenAssignModal(bed)}
-                        >
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          Assign Patient
-                        </Button>
+                        {role === 'Doctor' && (
+                            <Button
+                            variant="outline"
+                            className="mt-2 bg-background hover:bg-muted"
+                            onClick={() => handleOpenAssignModal(bed)}
+                            >
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Assign Patient
+                            </Button>
+                        )}
                       </CardContent>
                     </Card>
                   )
@@ -193,7 +201,7 @@ export default function BedsPage() {
         patients={allPatients}
         bedId={selectedBed?.bedId}
       />
-      {bedToDischarge && (
+      {bedToDischarge && role === 'Doctor' && (
         <DischargeSummaryModal
           isOpen={isDischargeModalOpen}
           onClose={handleCloseDischargeModal}

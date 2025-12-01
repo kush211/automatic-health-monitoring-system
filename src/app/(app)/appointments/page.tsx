@@ -108,8 +108,8 @@ export default function AppointmentsPage() {
             <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
             <p className="text-muted-foreground">Manage your patient appointments and schedule.</p>
           </div>
-          {role !== 'Nurse' && (
-            <Button>
+          {role === 'Doctor' && (
+            <Button onClick={() => router.push('/book-appointment')}>
               <PlusCircle className="mr-2 h-4 w-4" />
               New Appointment
             </Button>
@@ -150,7 +150,7 @@ export default function AppointmentsPage() {
         </div>
       </div>
 
-      {selectedAppointment && user && (
+      {selectedAppointment && user && role === 'Doctor' && (
         <TransferAppointmentModal
           isOpen={isTransferModalOpen}
           onClose={handleCloseTransferModal}
