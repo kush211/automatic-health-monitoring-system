@@ -6,12 +6,13 @@ import { createContext, useContext, useState, ReactNode, useEffect, useCallback 
 import type { Appointment, Bed, Bill, Patient, User, AppSettings, BillItem } from '@/lib/types';
 import { initialPatients, doctors, appointments as initialAppointments } from '@/lib/data';
 import { useUser, useMemoFirebase } from '@/firebase';
-import { collection, doc, updateDoc, writeBatch, getDocs, onSnapshot, query, orderBy, getDoc, addDoc } from 'firebase/firestore';
+import { collection, doc, updateDoc, writeBatch, getDocs, onSnapshot, query, orderBy, getDoc, addDoc, getFirestore } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
 import { useToast } from './use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { BillableServices } from '@/lib/services';
 import { differenceInDays } from 'date-fns';
+import { getApp, getApps } from 'firebase/app';
 
 
 interface NewAppointmentPayload {
@@ -45,7 +46,7 @@ interface AppContextType {
   billedPatients: Bill[];
   settings: AppSettings;
   transferAppointment: (appointmentId: string, newDoctor: User) => void;
-  updateAppointmentStatus: (appointmentId: string, status: Appointment['status']) => void;
+  updateAppointmentStatus: (appointmentId?: string, status?: Appointment['status']) => void;
   addAppointment: (payload: NewAppointmentPayload) => void;
   addPatient: (payload: NewPatientPayload) => void;
   addBed: (ward: 'General' | 'ICU' | 'Maternity') => void;
@@ -111,10 +112,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authUser && firestore) {
       const patientsUnsub = onSnapshot(collection(firestore, 'patients'), (snapshot) => {
-        setPatients(snapshot.docs.map(doc => doc.data() as Patient));
+        setPatients(snapshot.docs.map(doc => ({id: doc.id, ...doc.data()} as Patient)));
       });
       const appointmentsUnsub = onSnapshot(collection(firestore, 'appointments'), (snapshot) => {
-        setAppointments(snapshot.docs.map(doc => doc.data() as Appointment));
+        setAppointments(snapshot.docs.map(doc => ({id: doc.id, ...doc.data()} as Appointment)));
       });
 
       return () => {
@@ -152,7 +153,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [settings]);
 
+    // utility to get firestore instance safely
+    function getFirestoreSafe() {
+        try {
+        // if you initialized Firebase elsewhere, prefer getApp() usage
+        const app = getApps().length ? getApp() : undefined;
+        if (!app) {
+            console.warn("Firebase app not initialized - getFirestoreSafe returning undefined");
+            return undefined;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        return getFirestore(app);
+        } catch (err) {
+        console.error("Failed to get Firestore instance:", err);
+        return undefined;
+        }
+    }
+
   const transferAppointment = (appointmentId: string, newDoctor: User) => {
+    if (!firestore) return;
     const appointmentRef = doc(firestore, 'appointments', appointmentId);
     updateDoc(appointmentRef, {
         doctorId: newDoctor.uid,
@@ -160,14 +179,50 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const updateAppointmentStatus = (appointmentId: string, status: Appointment['status']) => {
-    const appointment = appointments.find(a => a.id === appointmentId);
-    if (!appointment) return;
-    const appointmentRef = doc(firestore, 'appointments', appointment.id);
-    updateDoc(appointmentRef, { status });
+  const updateAppointmentStatus = async (appointmentId?: string, status?: Appointment['status']) => {
+    try {
+        if (!appointmentId) {
+          console.warn("updateAppointmentStatus called without appointmentId");
+          return;
+        }
+        if (!status) {
+          console.warn("updateAppointmentStatus called without status");
+          return;
+        }
+        // find appointment in local state - adapt field name to your structure
+        // some projects use `id` as doc id, others `appointmentId` — check which one your data has
+        const appointment = appointments.find(a => a.id === appointmentId || a.appointmentId === appointmentId);
+        if (!appointment) {
+          console.warn("No appointment found for id:", appointmentId, "search used id and appointmentId fields");
+          return;
+        }
+    
+        // safe firestore instance
+        const firestore = getFirestoreSafe();
+        if (!firestore) {
+          console.error("Firestore instance unavailable. Aborting update.");
+          return;
+        }
+    
+        // pick the correct doc id for Firestore:
+        // prefer document id (appointment.id) if present, else fallback to appointment.appointmentId
+        const docId = appointment.id ?? appointment.appointmentId;
+        if (!docId) {
+          console.error("No document id available on appointment:", appointment);
+          return;
+        }
+    
+        const appointmentRef = doc(firestore, "appointments", String(docId));
+        await updateDoc(appointmentRef, { status });
+        // optionally update local state (optimistic)
+        setAppointments(prev => prev.map(a => (a.id === appointment.id || a.appointmentId === appointment.appointmentId) ? { ...a, status } : a));
+      } catch (err) {
+        console.error("updateAppointmentStatus error:", err);
+      }
   };
   
   const addAppointment = ({ patient, doctor, dateTime, status = 'Scheduled' }: NewAppointmentPayload) => {
+    if (!firestore) return;
     const appointmentsCollection = collection(firestore, 'appointments');
     addDocumentNonBlocking(appointmentsCollection, {
         patientId: patient.patientId,
@@ -183,6 +238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
   
   const addPatient = (payload: NewPatientPayload) => {
+    if (!firestore) return;
     const newPatientId = `PID-${patients.length + 1}-${new Date().getFullYear()}`;
     const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
     const newPatientData = {
@@ -201,6 +257,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addBed = (ward: 'General' | 'ICU' | 'Maternity') => {
+    if (!firestore) return;
     const newBedId = `Bed ${Math.floor(Math.random() * 900) + 100}`;
     const newBedData = {
       bedId: newBedId,
@@ -212,6 +269,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const assignPatientToBed = (bedId: string, patient: Patient) => {
+    if (!firestore) return;
     const bed = beds.find(b => b.id === bedId);
     if (!bed) return;
     const bedRef = doc(firestore, 'beds', bed.id);
@@ -225,6 +283,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const dischargePatientFromBed = async (bedId: string) => {
+    if (!firestore) return;
     const bedToDischarge = beds.find(b => b.id === bedId);
     if (!bedToDischarge || !bedToDischarge.assignedPatientId || !bedToDischarge.assignedAt) return;
 
@@ -291,6 +350,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
   
   const clearAllData = async () => {
+    if (!firestore) return;
     toast({ title: "Clearing Data...", description: "Removing all data from Firestore collections and local storage." });
     try {
         const collectionsToDelete = ['patients', 'appointments', 'beds'];
@@ -357,3 +417,5 @@ export function useAppContext() {
   }
   return context;
 }
+
+    

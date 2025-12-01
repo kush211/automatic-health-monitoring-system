@@ -42,6 +42,8 @@ import {
 } from "@/components/ui/table";
 import { DateWithAI } from "@/components/date-with-ai";
 import { useAuth } from "@/hooks/use-auth";
+import { copyToClipboard } from "@/lib/clipboard";
+import { useToast } from "@/hooks/use-toast";
 
 const data: Payment[] = [
   {
@@ -99,6 +101,7 @@ export default function PatientsPage() {
   const [rowSelection, setRowSelection] = React.useState({});
   
   const { role } = useAuth();
+  const { toast } = useToast();
   
   const columns = React.useMemo<ColumnDef<Payment>[]>(() => [
       {
@@ -182,9 +185,20 @@ export default function PatientsPage() {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem
-                    onClick={() => navigator.clipboard.writeText(payment.id)}
+                      onClick={async () => {
+                        const { success } = await copyToClipboard(payment.id);
+                        if (success) {
+                          toast({ title: "Patient ID copied to clipboard" });
+                        } else {
+                          toast({
+                            title: "Failed to copy",
+                            description: "Could not copy ID to clipboard.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
                     >
-                    Copy patient ID
+                      Copy patient ID
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>View payment details</DropdownMenuItem>
@@ -194,7 +208,7 @@ export default function PatientsPage() {
           );
         },
       },
-    ], [role]);
+    ], [role, toast]);
 
   const table = useReactTable({
     data,
@@ -330,3 +344,5 @@ export default function PatientsPage() {
     </div>
   );
 }
+
+    
