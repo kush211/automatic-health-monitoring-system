@@ -1,6 +1,15 @@
 
 import { Patient, User, Appointment, RecentActivity, MonthlyVisit } from "./types";
 
+export const adminUser: User = {
+    uid: 'admin1',
+    name: 'Admin User',
+    email: 'admin@example.com',
+    role: 'Admin',
+    clinicId: 'clinic123',
+    avatarUrl: 'https://picsum.photos/seed/admin1/100/100',
+};
+
 export const demoUser: User = {
   uid: 'doc1',
   name: "Dr. Priya Sharma",
@@ -29,6 +38,7 @@ export const receptionistUser: User = {
 };
 
 export const allUsers: User[] = [
+    adminUser,
     demoUser,
     {
       uid: 'doc2',

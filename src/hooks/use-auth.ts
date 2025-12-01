@@ -2,9 +2,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { demoUser, nurseUser, receptionistUser } from "@/lib/data";
+import { demoUser, nurseUser, receptionistUser, adminUser } from "@/lib/data";
 import type { User, UserRole } from "@/lib/types";
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 // This is a mock auth hook that simulates a real authentication flow.
 // It uses localStorage to persist the user's role across sessions.
@@ -13,6 +13,7 @@ export function useAuth(): { user: User | null; role: UserRole | null; isLoading
   const [role, setRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     // This code runs only on the client-side
@@ -30,17 +31,22 @@ export function useAuth(): { user: User | null; role: UserRole | null; isLoading
         case 'Receptionist':
           setUser(receptionistUser);
           break;
+        case 'Admin':
+            setUser(adminUser);
+            break;
         default:
           setUser(null);
       }
     } else {
         // If no role is found, they are not "logged in"
-        // In a real app, you might redirect to the login page.
-        // For this demo, we'll leave them unauthenticated on non-protected routes.
+        // Redirect to login page if they are trying to access a protected route
+        if (!pathname.startsWith('/login') && !pathname.startsWith('/admin/login')) {
+            // router.push('/login');
+        }
     }
     
     setIsLoading(false);
-  }, []);
+  }, [pathname, router]);
 
   return { user, role, isLoading };
 }

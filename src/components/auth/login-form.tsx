@@ -24,7 +24,7 @@ export function LoginForm() {
   };
 
   return (
-    <Tabs defaultValue="doctor" className="w-full" onValueChange={(value) => setActiveTab(value as UserRole)}>
+    <Tabs defaultValue="Doctor" className="w-full" onValueChange={(value) => setActiveTab(value as UserRole)}>
       <TabsList className="grid w-full grid-cols-3 bg-muted mb-4 p-1 h-auto">
         <TabsTrigger value="Doctor">Doctor</TabsTrigger>
         <TabsTrigger value="Nurse">Nurse</TabsTrigger>

@@ -26,7 +26,7 @@ export default function LoginPage() {
           <h1 className="font-headline text-white text-2xl">HealthHub Rural</h1>
         </div>
          <div className="absolute top-8 right-8">
-           <Link href="#" className="text-sm font-medium text-white hover:underline">
+           <Link href="/admin/login" className="text-sm font-medium text-white hover:underline">
             Admin
           </Link>
         </div>

@@ -13,6 +13,7 @@ import { DashboardHeader } from "@/components/dashboard-header";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppProvider } from "@/hooks/use-app-context";
+import { AdminSidebar } from "@/components/admin-sidebar";
 
 export default function AppLayout({
   children,
@@ -48,14 +49,26 @@ export default function AppLayout({
       </div>
     );
   }
+  
+  const renderSidebar = () => {
+    switch (role) {
+        case 'Doctor':
+            return <DashboardSidebar />;
+        case 'Nurse':
+            return <NurseSidebar />;
+        case 'Receptionist':
+            return <ReceptionistSidebar />;
+        case 'Admin':
+            return <AdminSidebar />;
+        default:
+            return null;
+    }
+  }
+
 
   return (
-    <AppProvider>
       <SidebarProvider>
-        {role === 'Doctor' && <DashboardSidebar />}
-        {role === 'Nurse' && <NurseSidebar />}
-        {role === 'Receptionist' && <ReceptionistSidebar />}
-
+        {renderSidebar()}
         <SidebarInset>
           <div className="flex min-h-screen w-full flex-col overflow-hidden">
             <DashboardHeader />
@@ -65,6 +78,5 @@ export default function AppLayout({
           </div>
         </SidebarInset>
       </SidebarProvider>
-    </AppProvider>
   );
 }
