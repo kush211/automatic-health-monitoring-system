@@ -52,7 +52,7 @@ export const patients: Patient[] = [
     phone: "+91-9876543210",
     address: "12, Gandhi Nagar, Jaipur, Rajasthan",
     primaryDoctorId: "doc1",
-    primaryDoctorName: "Dr. Anjali Sharma",
+    primaryDoctorName: "Dr. Priya Sharma",
     consent_for_ai: true,
     avatarUrl: "https://picsum.photos/seed/patient1/100/100",
     createdAt: "2024-01-10T10:00:00Z",
@@ -66,7 +66,7 @@ export const patients: Patient[] = [
     phone: "9876543211",
     address: "456, Park Avenue, Mumbai",
     primaryDoctorId: "doc1",
-    primaryDoctorName: "Dr. Anjali Sharma",
+    primaryDoctorName: "Dr. Priya Sharma",
     consent_for_ai: false,
     avatarUrl: "https://picsum.photos/seed/patient2/100/100",
     createdAt: "2024-02-15T11:00:00Z",
@@ -94,7 +94,7 @@ export const patients: Patient[] = [
     phone: '9988776655',
     address: '101 Rose Gardens, Pune',
     primaryDoctorId: 'doc1',
-    primaryDoctorName: 'Dr. Anjali Sharma',
+    primaryDoctorName: 'Dr. Priya Sharma',
     consent_for_ai: true,
     avatarUrl: 'https://picsum.photos/seed/patient4/100/100',
     createdAt: '2024-04-20T16:20:00Z',
@@ -108,7 +108,7 @@ export const patients: Patient[] = [
     phone: "9876543210",
     address: "123, Main Street, Delhi",
     primaryDoctorId: "doc1",
-    primaryDoctorName: "Dr. Anjali Sharma",
+    primaryDoctorName: "Dr. Priya Sharma",
     consent_for_ai: true,
     avatarUrl: "https://picsum.photos/seed/patient5/100/100",
     createdAt: "2024-01-10T10:00:00Z",
@@ -190,7 +190,7 @@ export const recentActivities: RecentActivity[] = [
         patientAvatarUrl: 'https://picsum.photos/seed/patient2/100/100',
         action: "Discharged",
         timestamp: "3 hours ago",
-        actorName: "Dr. A. Sharma"
+        actorName: "Dr. Priya Sharma"
     },
     {
         id: "4",
@@ -198,7 +198,7 @@ export const recentActivities: RecentActivity[] = [
         patientAvatarUrl: 'https://picsum.photos/seed/patient1/100/100',
         action: "New prescription added",
         timestamp: "Yesterday",
-        actorName: "Dr. A. Sharma"
+        actorName: "Dr. Priya Sharma"
     }
 ]
 
@@ -223,5 +223,3 @@ export const kpiData = {
     bedOccupancy: { value: "75%", change: "+5%" },
     commonDiagnosis: { value: "Hypertension", change: "" },
 }
-
-    
