@@ -129,13 +129,15 @@ export function ViewBillModal({
             <DialogClose asChild>
                 <Button variant="outline">Close</Button>
             </DialogClose>
-            <Button
-                variant="default"
-                onClick={handlePrint}
-            >
-                <Printer className="mr-2 h-4 w-4" />
-                Print Bill
-            </Button>
+            <div>
+                <Button
+                    variant="default"
+                    onClick={handlePrint}
+                >
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print Bill
+                </Button>
+            </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
