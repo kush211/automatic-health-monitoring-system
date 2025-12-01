@@ -19,10 +19,11 @@ import {
 interface AppointmentListProps {
   appointments: Appointment[];
   onTransfer: (appointment: Appointment) => void;
+  onMarkAsArrived: (appointmentId: string) => void;
   showTimes?: boolean;
 }
 
-export function AppointmentList({ appointments, onTransfer, showTimes = false }: AppointmentListProps) {
+export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, showTimes = false }: AppointmentListProps) {
   if (appointments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -72,7 +73,7 @@ export function AppointmentList({ appointments, onTransfer, showTimes = false }:
             <div className="flex items-center gap-2">
                 {getStatusBadge(appointment.status)}
                 {appointment.status === 'Scheduled' && (
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => onMarkAsArrived(appointment.appointmentId)}>
                         <Check className="mr-2 h-4 w-4 text-green-600" /> Mark as Arrived
                     </Button>
                 )}

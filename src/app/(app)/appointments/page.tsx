@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { isSameDay } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function AppointmentsPage() {
   // mark when client has mounted to avoid server/client formatting mismatch
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   // keep the same initial date (deterministic)
   const [date, setDate] = useState<Date | undefined>(new Date('2024-07-28T00:00:00Z'));
@@ -70,6 +72,20 @@ export default function AppointmentsPage() {
       title: 'Appointment Transferred',
       description: `Appointment with ${selectedAppointment.patientName} has been transferred to ${newDoctor.name}.`,
     });
+  };
+
+  const handleMarkAsArrived = (appointmentId: string) => {
+    const appointment = appointments.find(app => app.appointmentId === appointmentId);
+    if (!appointment) return;
+
+    setAppointments(prev =>
+      prev.map(app =>
+        app.appointmentId === appointmentId ? { ...app, status: 'Arrived' } : app
+      )
+    );
+    
+    // Navigate to patient page
+    router.push(`/patients/${appointment.patientId.split('-')[1]}`);
   };
 
   // Safe formatted date only after mount (prevents server/client mismatch)
@@ -138,6 +154,7 @@ export default function AppointmentsPage() {
                 <AppointmentList
                   appointments={appointmentsForSelectedDate}
                   onTransfer={handleOpenTransferModal}
+                  onMarkAsArrived={handleMarkAsArrived}
                   showTimes={mounted}
                 />
               </ScrollArea>
