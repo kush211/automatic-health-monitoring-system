@@ -110,20 +110,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
   useEffect(() => {
-    if (authUser && firestore) {
-      const patientsUnsub = onSnapshot(collection(firestore, 'patients'), (snapshot) => {
-        setPatients(snapshot.docs.map(doc => ({id: doc.id, ...doc.data()} as Patient)));
-      });
-      const appointmentsUnsub = onSnapshot(collection(firestore, 'appointments'), (snapshot) => {
-        setAppointments(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Appointment)));
-      });
-
-      return () => {
-        patientsUnsub();
-        appointmentsUnsub();
-      }
-    }
-  }, [authUser, firestore]);
+    if (!firestore) return;
+  
+    const patientsRef = collection(firestore, 'patients');
+    const patientsUnsub = onSnapshot(patientsRef, (snapshot) => {
+      const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Patient));
+      console.log('patients snapshot count', list.length);
+      setPatients(list);
+    }, (err) => {
+      console.error('patients onSnapshot error:', err);
+    });
+  
+    const appointmentsRef = collection(firestore, 'appointments');
+    const appointmentsUnsub = onSnapshot(appointmentsRef, (snapshot) => {
+      const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Appointment));
+      console.log('appointments snapshot count', list.length);
+      setAppointments(list);
+    }, (err) => {
+      console.error('appointments onSnapshot error:', err);
+    });
+  
+    return () => {
+      patientsUnsub();
+      appointmentsUnsub();
+    };
+  }, [firestore]);
 
   const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>(() => getInitialState('dischargedPatients', []));
   const [billedPatients, setBilledPatients] = useState<Bill[]>(() => getInitialState('billedPatients', []));
@@ -254,23 +265,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
   
-  const addPatient = (payload: NewPatientPayload) => {
-    if (!firestore) return;
-    const patientId = `PID-${patients.length + initialPatients.length + 1}-${new Date().getFullYear()}`;
-    const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
-    
-    const newPatientData = {
+  const addPatient = async (payload: NewPatientPayload) => {
+    if (!firestore) {
+      console.error('addPatient: firestore not available');
+      return;
+    }
+  
+    try {
+      const patientId = `PID-${patients.length + initialPatients.length + 1}-${new Date().getFullYear()}`;
+      const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
+  
+      const newPatientData = {
         ...payload,
         patientId,
         primaryDoctorName: primaryDoctor?.name || 'Unassigned',
         avatarUrl: `https://picsum.photos/seed/${patientId}/100/100`,
-        consent_for_ai: true, // Defaulting to true for demo purposes
+        consent_for_ai: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-    };
-
-    const patientsCollection = collection(firestore, 'patients');
-    addDocumentNonBlocking(patientsCollection, newPatientData);
+      };
+  
+      const patientsCollection = collection(firestore, 'patients');
+  
+      // Use addDoc directly and await the result so you catch errors
+      const docRef = await addDoc(patientsCollection, newPatientData);
+      console.log('Patient written, docId=', docRef.id);
+  
+      // Optional: optimistic local update so UI shows immediately
+      setPatients(prev => [{ id: docRef.id, ...newPatientData } as Patient, ...prev]);
+  
+      toast({
+        title: 'Patient added',
+        description: `${payload.name} (ID: ${patientId}) has been added.`,
+      });
+  
+    } catch (error) {
+      console.error('addPatient failed:', error);
+      toast({
+        title: 'Error adding patient',
+        description: String(error),
+        variant: 'destructive',
+      });
+    }
   };
 
   const addBed = (ward: 'General' | 'ICU' | 'Maternity') => {
