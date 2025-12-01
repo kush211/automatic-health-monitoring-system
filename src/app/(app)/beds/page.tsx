@@ -15,9 +15,10 @@ import { generateDischargeSummary } from '@/ai/flows/generate-discharge-summary'
 import { useAppContext } from '@/hooks/use-app-context';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function BedsPage() {
-  const { beds, addBed, assignPatientToBed, dischargePatientFromBed, patients } = useAppContext();
+  const { beds, bedsLoading, bedsError, addBed, assignPatientToBed, dischargePatientFromBed, patients } = useAppContext();
   const { role } = useAuth();
   const { toast } = useToast();
   const [isAddBedModalOpen, setIsAddBedModalOpen] = useState(false);
@@ -99,6 +100,40 @@ export default function BedsPage() {
     setIsAddBedModalOpen(false);
   };
 
+  if (bedsLoading) {
+    return (
+        <div className="flex flex-col gap-8">
+            <div className="flex items-center justify-between">
+                <div>
+                    <Skeleton className="h-8 w-64" />
+                    <Skeleton className="h-4 w-96 mt-2" />
+                </div>
+                <Skeleton className="h-10 w-28" />
+            </div>
+            <div className="space-y-8">
+                <div>
+                    <Skeleton className="h-8 w-32 mb-4" />
+                    <Separator className="mb-6" />
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <Skeleton className="h-64 w-full" />
+                        <Skeleton className="h-64 w-full" />
+                        <Skeleton className="h-64 w-full" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+  }
+
+  if (bedsError) {
+    return (
+        <div className="flex flex-col gap-4 items-center justify-center h-full">
+            <p className="text-destructive">Error loading beds: {bedsError.message}</p>
+            <p className="text-muted-foreground">Please check the console for more details and ensure your Firestore rules are correctly configured.</p>
+        </div>
+    );
+  }
+
   const wards = ['General', 'ICU', 'Maternity'];
 
   return (
@@ -110,7 +145,7 @@ export default function BedsPage() {
             Overview of all hospital beds and their occupancy status.
           </p>
         </div>
-        {role === 'Doctor' && (
+        {(role === 'Doctor' || role === 'Nurse') && (
             <Button onClick={() => setIsAddBedModalOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Bed
@@ -118,10 +153,17 @@ export default function BedsPage() {
         )}
       </div>
 
+      { (!beds || beds.length === 0) && (
+            <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg mt-8">
+                <p className="text-lg font-semibold text-muted-foreground">No beds found</p>
+                <p className="text-sm text-muted-foreground">There are no beds in the system. Get started by adding a new bed.</p>
+            </div>
+       )}
+
       <div className="space-y-8">
         {wards.map((ward) => (
           <div key={ward}>
-            <h2 className="text-2xl font-semibold mb-4">Ward {ward}</h2>
+            <h2 className="text-2xl font-semibold mb-4">Ward: {ward}</h2>
             <Separator className="mb-6" />
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {beds

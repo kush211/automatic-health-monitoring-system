@@ -5,11 +5,11 @@
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
 import { initialPatients, doctors, appointments as initialAppointments } from '@/lib/data';
-import { useCollection, useUser, useMemoFirebase } from '@/firebase';
-import { collection, doc, updateDoc, writeBatch, getDocs } from 'firebase/firestore';
+import { useUser, useMemoFirebase } from '@/firebase';
+import { collection, doc, updateDoc, writeBatch, getDocs, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
 import { useToast } from './use-toast';
-import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 interface NewAppointmentPayload {
@@ -36,6 +36,8 @@ const initialSettings: AppSettings = {
 interface AppContextType {
   appointments: Appointment[];
   beds: Bed[];
+  bedsLoading: boolean;
+  bedsError: Error | null;
   patients: Patient[];
   dischargedPatientsForBilling: Patient[];
   billedPatients: Bill[];
@@ -72,29 +74,53 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { user: authUser } = useUser();
   const { toast } = useToast();
 
-  const patientsRef = useMemoFirebase(() => authUser ? collection(firestore, 'patients') : null, [firestore, authUser]);
-  const { data: patientsData } = useCollection<Patient>(patientsRef);
-
-  const appointmentsRef = useMemoFirebase(() => authUser ? collection(firestore, 'appointments') : null, [firestore, authUser]);
-  const { data: appointmentsData } = useCollection<Appointment>(appointmentsRef);
-  
-  const bedsRef = useMemoFirebase(() => authUser ? collection(firestore, 'beds') : null, [firestore, authUser]);
-  const { data: bedsData } = useCollection<Bed>(bedsRef);
-
   const [patients, setPatients] = useState<Patient[]>(initialPatients);
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
+  
+  const [beds, setBeds] = useState<Bed[]>([]);
+  const [bedsLoading, setBedsLoading] = useState(true);
+  const [bedsError, setBedsError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (patientsData) {
-      setPatients(patientsData as Patient[]);
-    }
-  }, [patientsData]);
+    if (!firestore) return;
+
+    const bedsRef = collection(firestore, "beds");
+    const q = query(bedsRef, orderBy("bedId")); 
+    
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data: Bed[] = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Bed));
+        setBeds(data);
+        setBedsLoading(false);
+        setBedsError(null);
+      },
+      (error) => {
+        console.error("Beds onSnapshot error:", error);
+        setBedsError(error);
+        setBedsLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [firestore]);
+
 
   useEffect(() => {
-    if (appointmentsData) {
-      setAppointments(appointmentsData as Appointment[]);
+    if (authUser && firestore) {
+      const patientsUnsub = onSnapshot(collection(firestore, 'patients'), (snapshot) => {
+        setPatients(snapshot.docs.map(doc => doc.data() as Patient));
+      });
+      const appointmentsUnsub = onSnapshot(collection(firestore, 'appointments'), (snapshot) => {
+        setAppointments(snapshot.docs.map(doc => doc.data() as Appointment));
+      });
+
+      return () => {
+        patientsUnsub();
+        appointmentsUnsub();
+      }
     }
-  }, [appointmentsData]);
+  }, [authUser, firestore]);
 
   const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>(() => getInitialState('dischargedPatients', []));
   const [billedPatients, setBilledPatients] = useState<Bill[]>(() => getInitialState('billedPatients', []));
@@ -133,7 +159,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const updateAppointmentStatus = (appointmentId: string, status: Appointment['status']) => {
-    const appointmentRef = doc(firestore, 'appointments', appointmentId);
+    const appointment = appointments.find(a => a.id === appointmentId);
+    if (!appointment) return;
+    const appointmentRef = doc(firestore, 'appointments', appointment.id);
     updateDoc(appointmentRef, { status });
   };
   
@@ -182,7 +210,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const assignPatientToBed = (bedId: string, patient: Patient) => {
-    const bed = bedsData?.find(b => b.id === bedId);
+    const bed = beds.find(b => b.id === bedId);
     if (!bed) return;
     const bedRef = doc(firestore, 'beds', bed.id);
     updateDoc(bedRef, {
@@ -195,7 +223,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const dischargePatientFromBed = (bedId: string) => {
-    const bedToDischarge = bedsData?.find(b => b.id === bedId);
+    const bedToDischarge = beds.find(b => b.id === bedId);
     if (bedToDischarge && bedToDischarge.assignedPatientId) {
         const patientToBill = patients.find(p => p.patientId === bedToDischarge.assignedPatientId);
         if (patientToBill && !dischargedPatientsForBilling.find(p => p.patientId === patientToBill.patientId)) {
@@ -271,7 +299,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = {
     appointments,
-    beds: bedsData || [],
+    beds,
+    bedsLoading,
+    bedsError,
     patients,
     dischargedPatientsForBilling,
     billedPatients,
@@ -298,5 +328,3 @@ export function useAppContext() {
   }
   return context;
 }
-
-    
