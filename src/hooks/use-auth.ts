@@ -9,7 +9,7 @@ import type { User, UserRole } from "@/lib/types";
 export function useAuth(): { user: User | null; role: UserRole | null; isLoading: boolean } {
   // For demonstration purposes, we'll hardcode the role.
   // You can change this to 'Doctor', 'Nurse' or other roles to test different views.
-  const role: UserRole = 'Receptionist'; 
+  const role: UserRole = 'Doctor'; 
   
   let user: User;
   if (role === 'Doctor') {
