@@ -81,6 +81,17 @@ export default function AppointmentsPage() {
         description: `${appointment.patientName} has been marked as arrived.`,
     });
   };
+  
+  const handleCancelAppointment = (appointmentId: string) => {
+    updateAppointmentStatus(appointmentId, 'Cancelled');
+    const appointment = appointments.find(app => app.appointmentId === appointmentId);
+     if (!appointment) return;
+    toast({
+      title: 'Appointment Cancelled',
+      description: `Appointment with ${appointment.patientName} has been cancelled.`,
+      variant: 'destructive',
+    });
+  };
 
   const formattedSelectedDate = useMemo(() => {
     if (!mounted) return null;
@@ -142,6 +153,7 @@ export default function AppointmentsPage() {
                   appointments={appointmentsForSelectedDate}
                   onTransfer={handleOpenTransferModal}
                   onMarkAsArrived={handleMarkAsArrived}
+                  onCancel={handleCancelAppointment}
                   showTimes={mounted}
                 />
               </ScrollArea>

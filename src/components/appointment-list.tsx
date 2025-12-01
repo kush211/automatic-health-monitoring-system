@@ -21,10 +21,11 @@ interface AppointmentListProps {
   appointments: Appointment[];
   onTransfer: (appointment: Appointment) => void;
   onMarkAsArrived: (appointmentId: string) => void;
+  onCancel: (appointmentId: string) => void;
   showTimes?: boolean;
 }
 
-export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, showTimes = false }: AppointmentListProps) {
+export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, onCancel, showTimes = false }: AppointmentListProps) {
   const { role } = useAuth();
     
   if (appointments.length === 0) {
@@ -107,7 +108,7 @@ export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, sho
                                 <ArrowRightLeft className="mr-2 h-4 w-4" />
                                 <span>Transfer</span>
                             </DropdownMenuItem>
-                             <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                             <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={() => onCancel(appointment.appointmentId)}>
                                 <X className="mr-2 h-4 w-4" />
                                 <span>Cancel</span>
                             </DropdownMenuItem>
@@ -121,4 +122,3 @@ export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, sho
     </div>
   );
 }
-
