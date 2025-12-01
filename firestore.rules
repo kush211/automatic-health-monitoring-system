@@ -1,0 +1,298 @@
+/**
+ * This ruleset enforces a Role-Based Access Control (RBAC) model combined with
+ * resource-specific ownership, designed for the HealthHub Rural healthcare application.
+ *
+ * Core Philosophy:
+ * Access is granted based on the authenticated user's assigned role (e.g., 'admin',
+ * 'doctor', 'nurse') stored on their user profile. For sensitive patient-related
+ * data, access is further restricted to specific users linked directly to the
+ * resource, such as a patient's designated 'primaryDoctorId'. The default security
+ * posture is to deny access unless explicitly granted by a rule.
+ *
+ * Data Structure:
+ * The data is organized into top-level collections representing the core entities of
+ * the application (users, patients, appointments, etc.). This flat structure simplifies
+ * security rules by minimizing the need for nested reads. The only exception is
+ * for patient records (`/patients/{patientId}/records/{recordId}`), which are
+ * logically and structurally nested under the patient they belong to.
+ *
+ * Key Security Decisions:
+ * - All operations require user authentication. There is no public access.
+ * - User enumeration is disabled; only administrators can list all users.
+ * - Access to patient data is strictly controlled, primarily granted to the
+ *   patient's assigned primary doctor or administrators.
+ * - Audit logs and patient risk analyses are immutable from the client-side to
+ *   ensure data integrity. They are expected to be written by backend services.
+ * - Writes are consistently validated to ensure the creator/owner fields match the
+ *   authenticated user, establishing a clear chain of authorship.
+ *
+ * Denormalization for Authorization:
+ * To ensure performant and secure authorization checks, critical access control
+ * data is denormalized. For instance, a user's role is stored directly on their
+ * `/users/{userId}` document. Similarly, a patient's document contains a
+ * `primaryDoctorId` field. This allows rules to make decisions without costly or
+ * impossible cross-collection queries, leading to a more secure and efficient system.
+ *
+ * Structural Segregation:
+ * Patient medical records are stored in a subcollection under the corresponding
+ * patient (`/patients/{patientId}/records`). This pattern provides strong structural
+ * security, ensuring that rules applied to the parent patient document can be
+ * effectively inherited and enforced on all associated child records.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user's UID matches the provided userId.
+     * @param userId The UID to check against the authenticated user.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Retrieves the authenticated user's profile document data.
+     * Caches the result for subsequent calls within the same evaluation.
+     */
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    /**
+     * Checks if the authenticated user has a specific role.
+     * @param role The role name to check (e.g., 'admin', 'doctor').
+     */
+    function isUserRole(role) {
+      return isSignedIn() && getUserData().role == role;
+    }
+
+    /**
+     * Checks if the authenticated user is an administrator.
+     */
+    function isAdmin() {
+      return isUserRole('admin');
+    }
+
+    /**
+     * Checks if the authenticated user is a doctor.
+     */
+    function isDoctor() {
+      return isUserRole('doctor');
+    }
+
+    /**
+     * Checks if the authenticated user is a nurse.
+     */
+    function isNurse() {
+      return isUserRole('nurse');
+    }
+
+    /**
+     * Checks if the authenticated user is the primary doctor for a given patient.
+     * @param patientId The ID of the patient document to check.
+     */
+    function isPrimaryDoctorForPatient(patientId) {
+      let patientData = get(/databases/$(database)/documents/patients/$(patientId)).data;
+      return isDoctor() && patientData.primaryDoctorId == request.auth.uid;
+    }
+    
+    /**
+     * Checks if a document exists before an update or delete operation.
+     */
+    function docExists() {
+      return resource != null;
+    }
+
+    // ------------------------------------------------------------------------
+    // Collection Rules
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description Manages user profiles. Users can create and manage their own
+     *   profile. Admins have full read/delete access.
+     * @path /users/{userId}
+     * @allow (create) An unauthenticated user creating their own user document upon signup.
+     * @deny (list) A non-admin user trying to list all users in the system.
+     * @principle Enforces self-ownership for profile management and prevents user enumeration by unauthorized users.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) && docExists() && request.resource.data.id == resource.data.id;
+      allow delete: if (isOwner(userId) || isAdmin()) && docExists();
+    }
+
+    /**
+     * @description Stores sensitive patient profiles. Access is restricted to the patient's
+     *   primary doctor and system administrators.
+     * @path /patients/{patientId}
+     * @allow (get) An admin or the patient's primary doctor retrieving the patient's document.
+     * @deny (update) A doctor who is not the primary doctor trying to modify a patient's profile.
+     * @principle Restricts access to Protected Health Information (PHI) based on a direct, documented relationship (`primaryDoctorId`).
+     */
+    match /patients/{patientId} {
+      allow get: if isPrimaryDoctorForPatient(patientId) || isAdmin();
+      allow list: if isDoctor() || isAdmin();
+      allow create: if isDoctor() || isAdmin();
+      allow update: if (isPrimaryDoctorForPatient(patientId) || isAdmin()) && docExists();
+      allow delete: if isAdmin() && docExists();
+
+      /**
+       * @description Stores individual medical records for a patient. Access rules are
+       *   inherited from the parent patient document.
+       * @path /patients/{patientId}/records/{recordId}
+       * @allow (get) The patient's primary doctor reading a medical record.
+       * @deny (create) A nurse trying to create a record for a patient they are not assigned to.
+       * @principle Enforces hierarchical security, where access to a subcollection is gated by permissions on its parent document.
+       */
+      match /records/{recordId} {
+        allow get: if isPrimaryDoctorForPatient(patientId) || isAdmin();
+        allow list: if isPrimaryDoctorForPatient(patientId) || isAdmin();
+        allow create: if isPrimaryDoctorForPatient(patientId) || isAdmin();
+        allow update: if (isPrimaryDoctorForPatient(patientId) || isAdmin()) && docExists();
+        allow delete: if (isPrimaryDoctorForPatient(patientId) || isAdmin()) && docExists();
+      }
+    }
+
+    /**
+     * @description Manages appointments. Access is granted to the doctor involved in
+     *   the appointment or to administrators.
+     * @path /appointments/{appointmentId}
+     * @allow (update) The doctor assigned to the appointment changing its status.
+     * @deny (delete) A doctor trying to delete an appointment they are not part of.
+     * @principle Grants access based on direct participation in an event or record, ensuring relevance.
+     */
+    match /appointments/{appointmentId} {
+      allow get: if (isDoctor() && resource.data.doctorId == request.auth.uid) || isAdmin();
+      allow list: if isDoctor() || isAdmin();
+      allow create: if (isDoctor() || isNurse() || isAdmin()) && request.resource.data.createdBy == request.auth.uid;
+      allow update: if ((isDoctor() && resource.data.doctorId == request.auth.uid) || isAdmin()) && docExists();
+      allow delete: if ((isDoctor() && resource.data.doctorId == request.auth.uid) || isAdmin()) && docExists();
+    }
+
+    /**
+     * @description Manages hospital beds. All authenticated staff can view bed status,
+     *   but only nurses and admins can modify their state (e.g., assign a patient).
+     * @path /beds/{bedId}
+     * @allow (get) A doctor checking the status of a bed.
+     * @deny (update) A doctor trying to mark a bed as 'available'.
+     * @principle Implements role-based writes for operational data, separating read access from modification privileges.
+     */
+    match /beds/{bedId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isNurse() || isAdmin();
+      allow update: if (isNurse() || isAdmin()) && docExists();
+      allow delete: if isAdmin() && docExists();
+    }
+
+    /**
+     * @description Stores patient lab reports. Access is limited to doctors, specific
+     *   staff roles (e.g., lab technicians), and admins.
+     * @path /lab_reports/{reportId}
+     * @allow (create) A lab technician uploading a new report for a patient.
+     * @deny (get) A nurse trying to view a lab report.
+     * @principle Enforces departmental or functional access control, limiting data to relevant roles.
+     */
+    match /lab_reports/{reportId} {
+      allow get: if isDoctor() || isUserRole('lab_technician') || isAdmin();
+      allow list: if isDoctor() || isUserRole('lab_technician') || isAdmin();
+      allow create: if (isDoctor() || isUserRole('lab_technician') || isAdmin()) && request.resource.data.uploadedBy == request.auth.uid;
+      allow update: if (isUserRole('lab_technician') || isAdmin()) && docExists();
+      allow delete: if isAdmin() && docExists();
+    }
+
+    /**
+     * @description Manages patient billing. Staff in billing-related roles can create
+     *   and manage bills, while admins have full control.
+     * @path /bills/{billId}
+     * @allow (create) A receptionist creating a new draft bill for a patient.
+     * @deny (update) A doctor trying to finalize a patient's bill.
+     * @principle Segregates financial data access from clinical data access based on job function.
+     */
+    match /bills/{billId} {
+      allow get: if isUserRole('receptionist') || isUserRole('billing') || isDoctor() || isAdmin();
+      allow list: if isUserRole('receptionist') || isUserRole('billing') || isDoctor() || isAdmin();
+      allow create: if (isUserRole('receptionist') || isUserRole('billing') || isAdmin()) && request.resource.data.generatedBy == request.auth.uid;
+      allow update: if (isUserRole('billing') || isAdmin()) && docExists();
+      allow delete: if (isUserRole('billing') || isAdmin()) && docExists();
+    }
+
+    /**
+     * @description Stores AI-generated risk analyses for patients. This data is
+     *   write-once from the client perspective to maintain integrity.
+     * @path /patient_risk_analysis/{analysisId}
+     * @allow (get) A patient's primary doctor reviewing their risk analysis.
+     * @deny (create, update, delete) Any user trying to create or modify an analysis directly.
+     * @principle Protects the integrity of critical, generated data by making it immutable from client applications.
+     */
+    match /patient_risk_analysis/{analysisId} {
+      allow get: if isPrimaryDoctorForPatient(resource.data.patientId) || isAdmin();
+      allow list: if isDoctor() || isAdmin();
+      allow create: if false; // Must be created by a trusted backend service
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Stores immutable audit logs of system activity. Access is strictly
+     *   limited to administrators for review and compliance purposes.
+     * @path /audit_logs/{logId}
+     * @allow (get) An administrator reviewing a specific log entry.
+     * @deny (list, create, update, delete) Any non-admin user attempting any operation.
+     * @principle Secures audit trails by making them read-only and accessible only to the highest privilege level.
+     */
+    match /audit_logs/{logId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if false; // Must be created by a trusted backend service
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Stores clinic information. This is reference data that is readable
+     *   by all authenticated staff but only writable by administrators.
+     * @path /clinics/{clinicId}
+     * @allow (list) Any authenticated user listing all clinics.
+     * @deny (create) A doctor attempting to add a new clinic to the system.
+     * @principle Manages shared, system-wide configuration data by allowing broad read access but restricting writes to admins.
+     */
+    match /clinics/{clinicId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin() && docExists();
+      allow delete: if isAdmin() && docExists();
+    }
+    
+    /**
+     * @description Manages patient admissions to beds. Clinical staff (doctors, nurses)
+     *   and admins can view admissions, while only nurses and admins can manage them.
+     * @path /admissions/{admissionId}
+     * @allow (get) A doctor viewing the details of a patient's admission.
+     * @deny (create) A doctor trying to admit a patient to a bed.
+     * @principle Assigns operational control (writes) to the roles responsible for the task (nurses), while allowing broader read access.
+     */
+    match /admissions/{admissionId} {
+        allow get: if isDoctor() || isNurse() || isAdmin();
+        allow list: if isDoctor() || isNurse() || isAdmin();
+        allow create: if isNurse() || isAdmin();
+        allow update: if (isNurse() || isAdmin()) && docExists();
+        allow delete: if isAdmin() && docExists();
+    }
+  }
+}

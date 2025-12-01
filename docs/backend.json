@@ -1,0 +1,741 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user within the HealthHub Rural system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user. (Primary Key)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's role within the system (e.g., doctor, nurse, admin).",
+          "format": "string"
+        },
+        "clinicId": {
+          "type": "string",
+          "description": "Reference to Clinic. (Relationship: Clinic 1:N User)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the user was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of when the user was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "role",
+        "clinicId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Patient": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Patient",
+      "type": "object",
+      "description": "Represents a patient within the HealthHub Rural system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the patient. (Primary Key)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The patient's full name."
+        },
+        "dob": {
+          "type": "string",
+          "description": "The patient's date of birth.",
+          "format": "date-time"
+        },
+        "gender": {
+          "type": "string",
+          "description": "The patient's gender."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The patient's phone number."
+        },
+        "address": {
+          "type": "string",
+          "description": "The patient's address."
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Human-readable patient identifier."
+        },
+        "primaryDoctorId": {
+          "type": "string",
+          "description": "Reference to User (Doctor). (Relationship: User 1:N Patient)"
+        },
+        "activeAdmissionId": {
+          "type": "string",
+          "description": "Reference to Admission. (Relationship: Admission 1:1 Patient, Optional)"
+        },
+        "consentForAi": {
+          "type": "boolean",
+          "description": "Whether the patient has given consent for AI analysis."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the patient was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of when the patient was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "dob",
+        "gender",
+        "phone",
+        "address",
+        "patientId",
+        "primaryDoctorId",
+        "consentForAi",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PatientRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PatientRecord",
+      "type": "object",
+      "description": "Represents a medical record for a patient.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the patient record. (Primary Key)"
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N PatientRecord)"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the record.",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of record (e.g., consultation, vitals, note)."
+        },
+        "doctorId": {
+          "type": "string",
+          "description": "Reference to User (Doctor). (Relationship: User 1:N PatientRecord)"
+        },
+        "nurseId": {
+          "type": "string",
+          "description": "Reference to User (Nurse). (Relationship: User 1:N PatientRecord, Optional)"
+        },
+        "content": {
+          "type": "string",
+          "description": "Structured content of the record."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags associated with the record.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "attachments": {
+          "type": "array",
+          "description": "Storage paths to attached files.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "date",
+        "type",
+        "doctorId",
+        "content",
+        "tags"
+      ]
+    },
+    "Appointment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Appointment",
+      "type": "object",
+      "description": "Represents an appointment within the HealthHub Rural system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the appointment. (Primary Key)"
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N Appointment)"
+        },
+        "doctorId": {
+          "type": "string",
+          "description": "Reference to User (Doctor). (Relationship: User 1:N Appointment)"
+        },
+        "dateTime": {
+          "type": "string",
+          "description": "Date and time of the appointment.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the appointment (e.g., scheduled, arrived, completed, cancelled)."
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Appointment)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the appointment was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "doctorId",
+        "dateTime",
+        "status",
+        "createdBy",
+        "createdAt"
+      ]
+    },
+    "Bed": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Bed",
+      "type": "object",
+      "description": "Represents a bed within the HealthHub Rural system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the bed. (Primary Key)"
+        },
+        "ward": {
+          "type": "string",
+          "description": "The ward to which the bed belongs (e.g., General, ICU, Maternity)."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the bed (e.g., available, occupied)."
+        },
+        "assignedPatientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:1 Bed, Optional)"
+        },
+        "assignedAt": {
+          "type": "string",
+          "description": "Timestamp of when the bed was assigned to a patient.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "ward",
+        "status"
+      ]
+    },
+    "LabReport": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "LabReport",
+      "type": "object",
+      "description": "Represents a lab report within the HealthHub Rural system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the lab report. (Primary Key)"
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N LabReport)"
+        },
+        "uploadedBy": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N LabReport)"
+        },
+        "filePath": {
+          "type": "string",
+          "description": "Storage path to the lab report file."
+        },
+        "reportDate": {
+          "type": "string",
+          "description": "Date of the lab report.",
+          "format": "date-time"
+        },
+        "metadata": {
+          "type": "string",
+          "description": "Metadata associated with the lab report."
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "uploadedBy",
+        "filePath",
+        "reportDate",
+        "metadata"
+      ]
+    },
+    "Bill": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Bill",
+      "type": "object",
+      "description": "Represents a bill within the HealthHub Rural system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the bill. (Primary Key)"
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N Bill)"
+        },
+        "items": {
+          "type": "array",
+          "description": "List of items in the bill.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Subtotal of the bill."
+        },
+        "insuranceAdjustment": {
+          "type": "number",
+          "description": "Insurance adjustment applied to the bill."
+        },
+        "totalDue": {
+          "type": "number",
+          "description": "Total amount due for the bill."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the bill (e.g., draft, finalized, paid)."
+        },
+        "generatedBy": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Bill)"
+        },
+        "generatedAt": {
+          "type": "string",
+          "description": "Timestamp of when the bill was generated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "items",
+        "subtotal",
+        "insuranceAdjustment",
+        "totalDue",
+        "status",
+        "generatedBy",
+        "generatedAt"
+      ]
+    },
+    "PatientRiskAnalysis": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PatientRiskAnalysis",
+      "type": "object",
+      "description": "Represents a patient risk analysis within the HealthHub Rural system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the patient risk analysis. (Primary Key)"
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N PatientRiskAnalysis)"
+        },
+        "triggerBy": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N PatientRiskAnalysis)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the risk analysis was created.",
+          "format": "date-time"
+        },
+        "riskLevel": {
+          "type": "string",
+          "description": "Risk level (e.g., low, medium, high)."
+        },
+        "primaryRiskFactors": {
+          "type": "array",
+          "description": "List of primary risk factors.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "supportingEvidence": {
+          "type": "array",
+          "description": "List of supporting evidence.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "actionableRecommendation": {
+          "type": "string",
+          "description": "Actionable recommendation based on the risk analysis."
+        },
+        "modelVersion": {
+          "type": "string",
+          "description": "Version of the AI model used for the analysis."
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the AI model (e.g., LLM provider)."
+        },
+        "consentGiven": {
+          "type": "boolean",
+          "description": "Whether the patient has given consent for the AI analysis."
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "triggerBy",
+        "createdAt",
+        "riskLevel",
+        "primaryRiskFactors",
+        "supportingEvidence",
+        "actionableRecommendation",
+        "modelVersion",
+        "source",
+        "consentGiven"
+      ]
+    },
+    "AuditLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AuditLog",
+      "type": "object",
+      "description": "Represents an audit log entry within the HealthHub Rural system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the audit log entry. (Primary Key)"
+        },
+        "actorUid": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N AuditLog)"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action performed (e.g., create, update, delete)."
+        },
+        "targetCollection": {
+          "type": "string",
+          "description": "Collection targeted by the action."
+        },
+        "targetId": {
+          "type": "string",
+          "description": "Identifier of the document targeted by the action."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp of when the action was performed.",
+          "format": "date-time"
+        },
+        "details": {
+          "type": "string",
+          "description": "Details of the action performed."
+        }
+      },
+      "required": [
+        "id",
+        "actorUid",
+        "action",
+        "targetCollection",
+        "targetId",
+        "timestamp",
+        "details"
+      ]
+    },
+    "Clinic": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Clinic",
+      "type": "object",
+      "description": "Represents a clinic within the HealthHub Rural system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the clinic. (Primary Key)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the clinic."
+        },
+        "address": {
+          "type": "string",
+          "description": "The address of the clinic."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address"
+      ]
+    },
+    "Admission": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Admission",
+      "type": "object",
+      "description": "Represents a patient admission to a bed.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the admission. (Primary Key)"
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:1 Admission)"
+        },
+        "bedId": {
+          "type": "string",
+          "description": "Reference to Bed. (Relationship: Bed 1:1 Admission)"
+        },
+        "admissionDate": {
+          "type": "string",
+          "description": "The date of admission.",
+          "format": "date-time"
+        },
+        "dischargeDate": {
+          "type": "string",
+          "description": "The date of discharge (optional).",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the admission (e.g., admitted, discharged)."
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "bedId",
+        "admissionDate",
+        "status"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Includes fields like name, email, role, and clinicId, which are used for authorization. Role is used to determine user's access rights, and clinicId specifies the clinic to which the user belongs.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/patients/{patientId}",
+        "definition": {
+          "entityName": "Patient",
+          "schema": {
+            "$ref": "#/backend/entities/Patient"
+          },
+          "description": "Stores patient profiles, including personal and contact information, primary doctor reference, and consent for AI analysis.  Access is determined by roles and the 'primaryDoctorId' field.",
+          "params": [
+            {
+              "name": "patientId",
+              "description": "The unique identifier for the patient."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/patients/{patientId}/records/{recordId}",
+        "definition": {
+          "entityName": "PatientRecord",
+          "schema": {
+            "$ref": "#/backend/entities/PatientRecord"
+          },
+          "description": "Stores medical records for a patient, nested under the patient document.  Access is restricted to doctors and nurses associated with the patient.",
+          "params": [
+            {
+              "name": "patientId",
+              "description": "The unique identifier for the patient."
+            },
+            {
+              "name": "recordId",
+              "description": "The unique identifier for the patient record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/appointments/{appointmentId}",
+        "definition": {
+          "entityName": "Appointment",
+          "schema": {
+            "$ref": "#/backend/entities/Appointment"
+          },
+          "description": "Stores appointment details, including patient, doctor, date/time, and status. Access is determined based on the user's role and their association with the appointment (e.g., doctor or patient).",
+          "params": [
+            {
+              "name": "appointmentId",
+              "description": "The unique identifier for the appointment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/beds/{bedId}",
+        "definition": {
+          "entityName": "Bed",
+          "schema": {
+            "$ref": "#/backend/entities/Bed"
+          },
+          "description": "Stores bed information, including ward, status, and assigned patient. Access is typically managed by nurses and administrators.",
+          "params": [
+            {
+              "name": "bedId",
+              "description": "The unique identifier for the bed."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/lab_reports/{reportId}",
+        "definition": {
+          "entityName": "LabReport",
+          "schema": {
+            "$ref": "#/backend/entities/LabReport"
+          },
+          "description": "Stores lab reports, including patient, uploader, file path, and metadata.  Access is restricted to lab technicians and doctors.",
+          "params": [
+            {
+              "name": "reportId",
+              "description": "The unique identifier for the lab report."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/bills/{billId}",
+        "definition": {
+          "entityName": "Bill",
+          "schema": {
+            "$ref": "#/backend/entities/Bill"
+          },
+          "description": "Stores billing information, including patient, items, amounts, and status. Creation is typically initiated by receptionists, with finalization requiring admin or billing roles.",
+          "params": [
+            {
+              "name": "billId",
+              "description": "The unique identifier for the bill."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/patient_risk_analysis/{analysisId}",
+        "definition": {
+          "entityName": "PatientRiskAnalysis",
+          "schema": {
+            "$ref": "#/backend/entities/PatientRiskAnalysis"
+          },
+          "description": "Stores patient risk analysis data, including risk level, factors, evidence, and recommendations. Write access is limited to Cloud Functions or doctors to ensure the integrity of the analysis. Consent is validated before performing analysis.",
+          "params": [
+            {
+              "name": "analysisId",
+              "description": "The unique identifier for the patient risk analysis."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/audit_logs/{logId}",
+        "definition": {
+          "entityName": "AuditLog",
+          "schema": {
+            "$ref": "#/backend/entities/AuditLog"
+          },
+          "description": "Stores audit log entries, recording actions performed on the system. Access is restricted to administrators for security and compliance.",
+          "params": [
+            {
+              "name": "logId",
+              "description": "The unique identifier for the audit log entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clinics/{clinicId}",
+        "definition": {
+          "entityName": "Clinic",
+          "schema": {
+            "$ref": "#/backend/entities/Clinic"
+          },
+          "description": "Stores clinic information. Used to scope users and other data to specific clinics.",
+          "params": [
+            {
+              "name": "clinicId",
+              "description": "The unique identifier for the clinic."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/admissions/{admissionId}",
+        "definition": {
+          "entityName": "Admission",
+          "schema": {
+            "$ref": "#/backend/entities/Admission"
+          },
+          "description": "Stores admission data related to a patient's stay at a bed. Includes patient, bed and admission date. Access to this collection would be role-based.",
+          "params": [
+            {
+              "name": "admissionId",
+              "description": "The unique identifier for the admission."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support a role-based healthcare application, HealthHub Rural, with a focus on patient record management, AI-powered risk analysis, appointment scheduling, billing, lab reports, and audit logging. The structure prioritizes authorization independence, clarity, and scalability. Authorization independence is achieved by avoiding hierarchical authorization dependencies. For example, roles and clinic IDs are stored directly within the user document, enabling easy rule creation without requiring `get()` calls to parent documents. Segregation is applied by using path-based ownership for user-owned data such as appointments and patient records, creating homogeneous security postures. Membership maps are not explicitly used in this design because access is controlled by user roles in combination with document ownership (e.g., a doctor can access patient records because they are the patient's primary doctor). The structure supports QAPs because it does not rely on rules as filters; read access is determined by explicit role-based checks on the user's authentication and, when relevant, ownership of data through the `primaryDoctorId` or similar fields. For collections like audit logs, access can be restricted based on user role, ensuring that only authorized personnel (e.g., admins) can list and view the logs."
+  }
+}
