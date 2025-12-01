@@ -13,18 +13,27 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { demoUser } from '@/lib/data';
 import { Save, KeyRound } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AccountPage() {
   const { toast } = useToast();
-  const [name, setName] = useState(demoUser.name);
-  const [email, setEmail] = useState(demoUser.email);
+  const { user, isLoading } = useAuth();
+  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      setEmail(user.email);
+    }
+  }, [user]);
 
   const handleProfileSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +58,26 @@ export default function AccountPage() {
       setIsSavingPassword(false);
     }, 1500);
   };
+  
+  if (isLoading || !user) {
+    return (
+        <div className="flex flex-col gap-8">
+            <div>
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-64 mt-2" />
+            </div>
+             <div className="grid gap-8 md:grid-cols-3">
+                <div className="md:col-span-1">
+                    <Skeleton className="h-64 w-full" />
+                </div>
+                <div className="md:col-span-2 flex flex-col gap-8">
+                    <Skeleton className="h-64 w-full" />
+                    <Skeleton className="h-72 w-full" />
+                </div>
+            </div>
+        </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -64,13 +93,13 @@ export default function AccountPage() {
           <Card>
             <CardContent className="p-6 flex flex-col items-center text-center gap-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={demoUser.avatarUrl} alt={demoUser.name} />
-                <AvatarFallback>{demoUser.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={user.avatarUrl} alt={user.name} />
+                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
                 <p className="text-xl font-semibold">{name}</p>
                 <p className="text-sm text-muted-foreground">{email}</p>
-                <p className="text-xs text-muted-foreground mt-1">({demoUser.role})</p>
+                <p className="text-xs text-muted-foreground mt-1">({user.role})</p>
               </div>
               <Button variant="outline" className="w-full">
                 Change Avatar
