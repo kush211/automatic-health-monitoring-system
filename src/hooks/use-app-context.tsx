@@ -245,8 +245,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const patient = dischargedPatientsForBilling.find(p => p.patientId === patientId);
     if (!patient) return;
 
-    const newBill: any = {
+    const newBill: Bill = {
         ...billDetails,
+        billId: `INV-${patient.patientId.slice(4, 8)}-${Date.now()}`,
         patientName: patient.name,
         status: 'Paid',
         generatedAt: new Date().toISOString(),
