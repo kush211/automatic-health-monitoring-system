@@ -6,10 +6,10 @@ import { createContext, useContext, useState, ReactNode, useEffect, useCallback 
 import type { Appointment, Bed, Bill, Patient, User, AppSettings, BillItem } from '@/lib/types';
 import { initialPatients, doctors, appointments as initialAppointments } from '@/lib/data';
 import { useUser, useMemoFirebase } from '@/firebase';
-import { collection, doc, updateDoc, writeBatch, getDocs, onSnapshot, query, orderBy, getDoc, addDoc, getFirestore } from 'firebase/firestore';
+import { collection, doc, updateDoc, writeBatch, getDocs, onSnapshot, query, orderBy, getDoc, addDoc, getFirestore, setDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
 import { useToast } from './use-toast';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { BillableServices } from '@/lib/services';
 import { differenceInDays } from 'date-fns';
 import { getApp, getApps } from 'firebase/app';
@@ -77,8 +77,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { user: authUser } = useUser();
   const { toast } = useToast();
 
-  const [patients, setPatients] = useState<Patient[]>(initialPatients);
-  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   
   const [beds, setBeds] = useState<Bed[]>([]);
   const [bedsLoading, setBedsLoading] = useState(true);
@@ -256,11 +256,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   
   const addPatient = (payload: NewPatientPayload) => {
     if (!firestore) return;
-    const newPatientId = `PID-${patients.length + 1}-${new Date().getFullYear()}`;
+    // Note: Using `patients.length` for ID generation is not robust in a multi-user environment.
+    // A better approach would be to use Firestore's auto-generated IDs or a UUID library.
+    // For this demo, we'll keep it simple.
+    const newPatientId = `PID-${patients.length + initialPatients.length + 1}-${new Date().getFullYear()}`;
     const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
+    
     const newPatientData = {
         ...payload,
-        id: newPatientId, // Use the same ID for firestore doc
         patientId: newPatientId,
         primaryDoctorName: primaryDoctor?.name || 'Unassigned',
         avatarUrl: `https://picsum.photos/seed/${newPatientId}/100/100`,
@@ -269,8 +272,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updatedAt: new Date().toISOString(),
     };
 
-    const patientsCollection = collection(firestore, 'patients');
-    addDocumentNonBlocking(patientsCollection, newPatientData);
+    // Use setDoc with an explicit document ID
+    const patientDocRef = doc(firestore, 'patients', newPatientId);
+    setDocumentNonBlocking(patientDocRef, newPatientData, { merge: false });
   };
 
   const addBed = (ward: 'General' | 'ICU' | 'Maternity') => {
