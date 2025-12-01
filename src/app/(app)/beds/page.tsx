@@ -143,7 +143,7 @@ export default function BedsPage() {
                             ID: {bed.assignedPatientId}
                           </p>
                         </div>
-                        {role === 'Doctor' && (
+                        {(role === 'Doctor' || role === 'Nurse') && (
                             <Button
                             variant="outline"
                             className="mt-2 bg-background hover:bg-muted"
@@ -170,7 +170,7 @@ export default function BedsPage() {
                                 Available
                             </p>
                         </div>
-                        {role === 'Doctor' && (
+                        {(role === 'Doctor' || role === 'Nurse') && (
                             <Button
                             variant="outline"
                             className="mt-2 bg-background hover:bg-muted"
@@ -201,7 +201,7 @@ export default function BedsPage() {
         patients={allPatients}
         bedId={selectedBed?.bedId}
       />
-      {bedToDischarge && role === 'Doctor' && (
+      {bedToDischarge && (role === 'Doctor' || role === 'Nurse') && (
         <DischargeSummaryModal
           isOpen={isDischargeModalOpen}
           onClose={handleCloseDischargeModal}
