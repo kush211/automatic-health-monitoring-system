@@ -5,6 +5,7 @@ import {
   ChevronsUpDown,
   ChevronDown,
   MoreHorizontal,
+  PlusCircle,
 } from "lucide-react";
 import Link from 'next/link';
 import {
@@ -40,56 +41,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DateWithAI } from "@/components/date-with-ai";
 import { useAuth } from "@/hooks/use-auth";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useToast } from "@/hooks/use-toast";
-
-const data: Payment[] = [
-  {
-    id: "1",
-    name: "Aarav Sharma",
-    status: "Active",
-    lastVisit: "2024-05-20",
-    diagnosis: "Hypertension",
-  },
-  {
-    id: "2",
-    name: "Priya Singh",
-    status: "Inactive",
-    lastVisit: "2024-05-21",
-    diagnosis: "Diabetes",
-  },
-  {
-    id: "3",
-    name: "Rohan Mehta",
-    status: "Active",
-    lastVisit: "2024-05-19",
-    diagnosis: "Asthma",
-  },
-  {
-    id: "4",
-    name: "Sunita Gupta",
-    status: "Active",
-    lastVisit: "2024-05-22",
-    diagnosis: "Migraine",
-  },
-  {
-    id: "5",
-    name: "Amit Kumar",
-    status: "Discharged",
-    lastVisit: "2024-04-15",
-    diagnosis: "Pneumonia",
-  },
-];
-
-export type Payment = {
-  id: string;
-  name: string;
-  status: "Active" | "Inactive" | "Discharged";
-  lastVisit: string;
-  diagnosis: string;
-};
+import { useAppContext } from "@/hooks/use-app-context";
+import type { Patient } from "@/lib/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PatientsPage() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -102,8 +61,11 @@ export default function PatientsPage() {
   
   const { role } = useAuth();
   const { toast } = useToast();
+  const { patients } = useAppContext();
+
+  const data = React.useMemo(() => patients || [], [patients]);
   
-  const columns = React.useMemo<ColumnDef<Payment>[]>(() => [
+  const columns = React.useMemo<ColumnDef<Patient>[]>(() => [
       {
         id: "select",
         header: ({ table }) => (
@@ -130,49 +92,50 @@ export default function PatientsPage() {
         accessorKey: "name",
         header: "Name",
         cell: ({ row }) => (
-          <div className="capitalize">{row.getValue("name")}</div>
-        ),
+            <div className="flex items-center gap-4">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={row.original.avatarUrl} alt={row.original.name} />
+                <AvatarFallback>{row.original.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="capitalize font-medium">{row.getValue("name")}</div>
+            </div>
+          ),
       },
       {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => (
-          <div className="capitalize">{row.getValue("status")}</div>
-        ),
+        accessorKey: "patientId",
+        header: "Patient ID"
       },
       {
-        accessorKey: "lastVisit",
+        accessorKey: "primaryDoctorName",
+        header: "Primary Doctor"
+      },
+      {
+        accessorKey: "createdAt",
         header: ({ column }) => {
           return (
             <Button
               variant="ghost"
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             >
-              Last Visit
+              Registration Date
               <ChevronsUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
         },
-        cell: ({ row }) => <DateWithAI date={new Date(row.getValue("lastVisit"))} />,
-      },
-      {
-        accessorKey: "diagnosis",
-        header: () => <div className="text-right">Diagnosis</div>,
-        cell: ({ row }) => {
-          return <div className="text-right font-medium">{row.getValue("diagnosis")}</div>;
-        },
+        cell: ({ row }) => format(new Date(row.getValue("createdAt")), "dd MMM, yyyy"),
       },
       {
         id: "actions",
         enableHiding: false,
         cell: ({ row }) => {
-          const payment = row.original;
+          const patient = row.original;
+          const patientIdNumber = patient.patientId.split('-')[1];
 
           return (
             <div className="flex items-center justify-end gap-2">
                 {role === 'Doctor' && (
-                    <Link href={`/patients/${payment.id}`} passHref>
-                    <Button variant="outline" size="sm">View Patient</Button>
+                    <Link href={`/patients/${patientIdNumber}`} passHref>
+                    <Button variant="outline" size="sm">View Record</Button>
                     </Link>
                 )}
                 <DropdownMenu>
@@ -186,7 +149,7 @@ export default function PatientsPage() {
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem
                       onClick={async () => {
-                        const { success } = await copyToClipboard(payment.id);
+                        const { success } = await copyToClipboard(patient.patientId);
                         if (success) {
                           toast({ title: "Patient ID copied to clipboard" });
                         } else {
@@ -201,7 +164,7 @@ export default function PatientsPage() {
                       Copy patient ID
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>View payment details</DropdownMenuItem>
+                    <DropdownMenuItem>View Billing Details</DropdownMenuItem>
                 </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -230,42 +193,57 @@ export default function PatientsPage() {
   });
 
   return (
-    <div className="w-full">
-      <div className="flex items-center py-4">
+    <div className="w-full flex flex-col gap-8">
+       <div>
+        <h1 className="text-3xl font-bold tracking-tight">Patient Records</h1>
+        <p className="text-muted-foreground">
+          Manage all patient records in the system.
+        </p>
+      </div>
+
+      <div className="flex items-center">
         <Input
-          placeholder="Filter patients..."
+          placeholder="Filter patients by name..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+        <div className="ml-auto flex items-center gap-2">
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                    return (
+                    <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                        }
+                    >
+                        {column.id === 'primaryDoctorName' ? 'Primary Doctor' : column.id}
+                    </DropdownMenuCheckboxItem>
+                    );
+                })}
+            </DropdownMenuContent>
+            </DropdownMenu>
+             <Button asChild>
+                <Link href="/patients/new">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Patient
+                </Link>
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -305,19 +283,33 @@ export default function PatientsPage() {
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
+              !patients ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-96">
+                    <div className="space-y-4">
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )
             )}
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-end space-x-2">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
@@ -344,5 +336,3 @@ export default function PatientsPage() {
     </div>
   );
 }
-
-    
