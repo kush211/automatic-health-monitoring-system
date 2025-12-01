@@ -3,13 +3,14 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
+import type { Appointment, Bed, Bill, Patient, User, AppSettings, BillItem } from '@/lib/types';
 import { initialPatients, doctors, appointments as initialAppointments } from '@/lib/data';
 import { useUser, useMemoFirebase } from '@/firebase';
 import { collection, doc, updateDoc, writeBatch, getDocs, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
 import { useToast } from './use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { BillableServices } from '@/lib/services';
 
 
 interface NewAppointmentPayload {
@@ -247,6 +248,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const newBill: Bill = {
         ...billDetails,
+        id: `INV-${patient.patientId.slice(4, 8)}-${Date.now()}`, // Assign a unique ID
         billId: `INV-${patient.patientId.slice(4, 8)}-${Date.now()}`,
         patientName: patient.name,
         status: 'Paid',

@@ -61,6 +61,7 @@ export type BillItem = {
 }
 
 export type Bill = {
+  id: string;
   billId: string;
   patientId: string;
   patientName: string;

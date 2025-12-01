@@ -28,12 +28,13 @@ import { FileText, Printer, CheckCircle, Stethoscope } from "lucide-react";
 import type { Patient, Bill, BillItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { BillableServices } from '@/lib/services';
+import { useAppContext } from '@/hooks/use-app-context';
 
 interface GenerateBillModalProps {
   isOpen: boolean;
   onClose: () => void;
   patient: Patient;
-  onBillGenerated: (patientId: string, billDetails: Omit<Bill, 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
+  onBillGenerated: (patientId: string, billDetails: Omit<Bill, 'id' | 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
 }
 
 // Mock function to get charges for a patient
@@ -98,6 +99,7 @@ export function GenerateBillModal({
 
   const handleFinalizeBill = () => {
     const billDetails = {
+        id: `INV-${patient.patientId.slice(4,8)}-${Date.now()}`,
         patientId: patient.patientId,
         items: billItems,
         subtotal,
