@@ -83,8 +83,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [patients, setPatients] = useState<Patient[]>(initialPatients);
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
-  const [beds, setBeds] = useState<Bed[]>([]);
-
 
   useEffect(() => {
     if (patientsData) {
@@ -97,13 +95,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setAppointments(appointmentsData as Appointment[]);
     }
   }, [appointmentsData]);
-  
-  useEffect(() => {
-    if (bedsData) {
-      setBeds(bedsData as Bed[]);
-    }
-  }, [bedsData]);
-
 
   const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>(() => getInitialState('dischargedPatients', []));
   const [billedPatients, setBilledPatients] = useState<Bill[]>(() => getInitialState('billedPatients', []));
@@ -191,7 +182,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const assignPatientToBed = (bedId: string, patient: Patient) => {
-    const bed = beds.find(b => b.id === bedId);
+    const bed = bedsData?.find(b => b.id === bedId);
     if (!bed) return;
     const bedRef = doc(firestore, 'beds', bed.id);
     updateDoc(bedRef, {
@@ -204,7 +195,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const dischargePatientFromBed = (bedId: string) => {
-    const bedToDischarge = beds.find(b => b.id === bedId);
+    const bedToDischarge = bedsData?.find(b => b.id === bedId);
     if (bedToDischarge && bedToDischarge.assignedPatientId) {
         const patientToBill = patients.find(p => p.patientId === bedToDischarge.assignedPatientId);
         if (patientToBill && !dischargedPatientsForBilling.find(p => p.patientId === patientToBill.patientId)) {
@@ -280,7 +271,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = {
     appointments,
-    beds,
+    beds: bedsData || [],
     patients,
     dischargedPatientsForBilling,
     billedPatients,
@@ -307,3 +298,5 @@ export function useAppContext() {
   }
   return context;
 }
+
+    
