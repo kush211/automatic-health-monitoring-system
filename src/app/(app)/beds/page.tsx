@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -12,31 +13,10 @@ import { patients as allPatients } from '@/lib/data';
 import { Separator } from '@/components/ui/separator';
 import type { GenerateDischargeSummaryOutput } from '@/ai/flows/generate-discharge-summary';
 import { generateDischargeSummary } from '@/ai/flows/generate-discharge-summary';
-
-const initialBeds: Bed[] = [
-  {
-    bedId: 'Bed 101',
-    ward: 'General',
-    status: 'Occupied',
-    assignedPatientId: 'PID-1-2024',
-    assignedPatientName: 'Aarav Sharma',
-    assignedPatientAvatarUrl: 'https://picsum.photos/seed/patient1/100/100',
-    assignedAt: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
-  },
-  {
-    bedId: 'Bed 102',
-    ward: 'General',
-    status: 'Available',
-  },
-  {
-    bedId: 'Bed 401',
-    ward: 'ICU',
-    status: 'Available',
-  },
-];
+import { useAppContext } from '@/hooks/use-app-context';
 
 export default function BedsPage() {
-  const [beds, setBeds] = useState<Bed[]>(initialBeds);
+  const { beds, addBed, assignPatientToBed, dischargePatientFromBed } = useAppContext();
   const [isAddBedModalOpen, setIsAddBedModalOpen] = useState(false);
   const [isAssignPatientModalOpen, setIsAssignPatientModalOpen] = useState(false);
   const [selectedBed, setSelectedBed] = useState<Bed | null>(null);
@@ -54,20 +34,7 @@ export default function BedsPage() {
 
   const handleAssignPatient = (patient: Patient) => {
     if (selectedBed) {
-      setBeds(
-        beds.map((b) =>
-          b.bedId === selectedBed.bedId
-            ? {
-                ...b,
-                status: 'Occupied',
-                assignedPatientId: patient.patientId,
-                assignedPatientName: patient.name,
-                assignedPatientAvatarUrl: patient.avatarUrl,
-                assignedAt: new Date().toISOString(),
-              }
-            : b
-        )
-      );
+      assignPatientToBed(selectedBed.bedId, patient);
       setIsAssignPatientModalOpen(false);
       setSelectedBed(null);
     }
@@ -103,20 +70,7 @@ export default function BedsPage() {
   };
 
   const handleConfirmDischarge = (bedId: string) => {
-    setBeds(
-      beds.map((b) =>
-        b.bedId === bedId
-          ? {
-              ...b,
-              status: 'Available',
-              assignedPatientId: undefined,
-              assignedPatientName: undefined,
-              assignedPatientAvatarUrl: undefined,
-              assignedAt: undefined,
-            }
-          : b
-      )
-    );
+    dischargePatientFromBed(bedId);
     handleCloseDischargeModal();
   };
   
@@ -128,13 +82,7 @@ export default function BedsPage() {
   }
 
   const handleAddBed = (ward: 'General' | 'ICU' | 'Maternity') => {
-    const newBedId = `Bed ${Math.floor(Math.random() * 900) + 100}`;
-    const newBed: Bed = {
-      bedId: newBedId,
-      ward: ward,
-      status: 'Available',
-    };
-    setBeds([...beds, newBed]);
+    addBed(ward);
     setIsAddBedModalOpen(false);
   };
 

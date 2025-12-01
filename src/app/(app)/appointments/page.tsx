@@ -8,43 +8,39 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AppointmentList } from '@/components/appointment-list';
-import { appointments as initialAppointments, doctors } from '@/lib/data';
+import { doctors } from '@/lib/data';
 import type { Appointment, User } from '@/lib/types';
-import { demoUser } from '@/lib/data';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { TransferAppointmentModal } from '@/components/transfer-appointment-modal';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { useAppContext } from '@/hooks/use-app-context';
 
 export default function AppointmentsPage() {
-  // mark when client has mounted to avoid server/client formatting mismatch
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
-  const { role } = useAuth();
+  const { user, role } = useAuth();
+  const { appointments, transferAppointment } = useAppContext();
+  const { toast } = useToast();
 
-  // keep the same initial date (deterministic)
   const [date, setDate] = useState<Date | undefined>(new Date('2024-07-28T00:00:00Z'));
-  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
-  const { toast } = useToast();
-
   useEffect(() => {
-    // set mounted true only on client after first paint
     setMounted(true);
   }, []);
 
-  const loggedInUser = role === 'Doctor' ? demoUser : (role === 'Nurse' ? require('@/lib/data').nurseUser : null);
+  const userAppointments = useMemo(() => {
+    if (!user) return [];
+    if (role === 'Doctor') {
+        return appointments.filter((app) => app.doctorId === user.uid);
+    }
+    // Nurses and other roles might see all appointments for the clinic
+    return appointments;
+  }, [appointments, user, role]);
 
-  // stable list of user's appointments (filter by id)
-  const userAppointments = useMemo(
-    () => appointments.filter((app) => loggedInUser && app.doctorId === loggedInUser.uid),
-    [appointments, loggedInUser]
-  );
-
-  // appointments for the currently selected date (stable filtering)
   const appointmentsForSelectedDate = useMemo(
     () =>
       userAppointments.filter((appointment) =>
@@ -66,9 +62,7 @@ export default function AppointmentsPage() {
   const handleConfirmTransfer = (newDoctor: User) => {
     if (!selectedAppointment) return;
 
-    setAppointments((prev) =>
-      prev.filter((app) => app.appointmentId !== selectedAppointment.appointmentId)
-    );
+    transferAppointment(selectedAppointment.appointmentId, newDoctor);
 
     handleCloseTransferModal();
 
@@ -79,20 +73,13 @@ export default function AppointmentsPage() {
   };
 
   const handleMarkAsArrived = (appointmentId: string) => {
+    // This logic would also be moved to the context in a real app
+    // For now, we find the appointment to navigate
     const appointment = appointments.find(app => app.appointmentId === appointmentId);
     if (!appointment) return;
-
-    setAppointments(prev =>
-      prev.map(app =>
-        app.appointmentId === appointmentId ? { ...app, status: 'Arrived' } : app
-      )
-    );
-    
-    // Navigate to patient page
     router.push(`/patients/${appointment.patientId.split('-')[1]}`);
   };
 
-  // Safe formatted date only after mount (prevents server/client mismatch)
   const formattedSelectedDate = useMemo(() => {
     if (!mounted) return null;
     const options: Intl.DateTimeFormatOptions = {
@@ -143,14 +130,12 @@ export default function AppointmentsPage() {
           <Card className="md:col-span-2 flex flex-col min-h-0">
             <CardHeader>
               <CardTitle>
-                {/* show formatted date only when mounted; otherwise show a stable placeholder */}
                 Schedule for {formattedSelectedDate ?? 'Today'}
               </CardTitle>
               <CardDescription>{descriptionText}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden p-0 sm:p-6 sm:pt-0">
               <ScrollArea className="h-full">
-                {/* pass mounted flag so AppointmentList can avoid rendering locale times until mounted */}
                 <AppointmentList
                   appointments={appointmentsForSelectedDate}
                   onTransfer={handleOpenTransferModal}
@@ -163,13 +148,13 @@ export default function AppointmentsPage() {
         </div>
       </div>
 
-      {selectedAppointment && (
+      {selectedAppointment && user && (
         <TransferAppointmentModal
           isOpen={isTransferModalOpen}
           onClose={handleCloseTransferModal}
           onConfirmTransfer={handleConfirmTransfer}
           appointment={selectedAppointment}
-          doctors={doctors.filter((d) => loggedInUser && d.uid !== loggedInUser.uid)}
+          doctors={doctors.filter((d) => d.uid !== user.uid)}
         />
       )}
     </>
