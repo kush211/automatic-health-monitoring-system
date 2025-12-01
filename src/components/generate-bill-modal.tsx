@@ -60,7 +60,7 @@ const getPatientCharges = (patient: Patient) => {
     const totalDue = subtotal + insuranceAdjustment;
 
     return { billItems, subtotal, insuranceAdjustment, totalDue };
-}
+};
 
 
 export function GenerateBillModal({
@@ -182,7 +182,6 @@ export function GenerateBillModal({
                 </Table>
               </div>
             </div>
-          </div>
         </ScrollArea>
 
         <Separator/>

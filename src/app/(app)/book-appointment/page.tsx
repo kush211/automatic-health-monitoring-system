@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -12,7 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/hooks/use-app-context';
 import { patients as allPatients, doctors } from '@/lib/data';
-import type { Patient, User } from '@/lib/types';
+import type { Patient, User as UserType } from '@/lib/types';
 
 export default function BookAppointmentPage() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function BookAppointmentPage() {
   const { addAppointment } = useAppContext();
 
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [selectedDoctor, setSelectedDoctor] = useState<User | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<UserType | null>(null);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isBooking, setIsBooking] = useState(false);
