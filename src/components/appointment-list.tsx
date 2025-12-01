@@ -57,7 +57,7 @@ export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, onC
       {appointments
         .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime())
         .map((appointment) => (
-        <Card key={appointment.id} className="hover:bg-muted/50 transition-colors">
+        <Card key={appointment.id ?? appointment.appointmentId} className="hover:bg-muted/50 transition-colors">
           <CardContent className="p-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-12 w-12">
