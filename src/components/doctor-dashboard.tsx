@@ -1,7 +1,7 @@
 
 'use client';
 import { kpiData } from '@/lib/data';
-import { Bed, Calendar, Stethoscope, Users, Database } from 'lucide-react';
+import { Bed, Calendar, Stethoscope, Users } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -13,12 +13,9 @@ import { KpiCard } from '@/components/kpi-card';
 import { MonthlyVisitsChart } from '@/components/monthly-visits-chart';
 import { RecentActivity } from '@/components/recent-activity';
 import { useAuth } from '@/hooks/use-auth';
-import { useAppContext } from '@/hooks/use-app-context';
-import { Button } from '@/components/ui/button';
 
 export function DoctorDashboard() {
     const { user } = useAuth();
-    const { DataSeeder, isSeeding, isSeedingComplete } = useAppContext();
     const dashboardKpis = [
         {
           title: 'Total Patients',
@@ -60,20 +57,6 @@ export function DoctorDashboard() {
           Here's a summary of your clinic's activities.
         </p>
       </div>
-
-      <Card>
-        <CardHeader>
-            <CardTitle>Seed Database</CardTitle>
-            <CardDescription>One-time action to populate the Firestore database with initial mock data.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Button onClick={DataSeeder} disabled={isSeeding || isSeedingComplete}>
-                <Database className="mr-2 h-4 w-4" />
-                {isSeeding ? 'Seeding...' : isSeedingComplete ? 'Data Seeded' : 'Seed Database'}
-            </Button>
-            {isSeedingComplete && <p className='text-sm text-green-600 mt-2'>Database has been populated successfully. You can now remove the seeder button.</p>}
-        </CardContent>
-      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         {dashboardKpis.map((kpi) => (

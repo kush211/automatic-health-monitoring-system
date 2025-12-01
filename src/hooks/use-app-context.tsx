@@ -50,9 +50,6 @@ interface AppContextType {
   generateBillForPatient: (patientId: string, billDetails: Omit<Bill, 'id' | 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   clearAllData: () => void;
-  DataSeeder: () => void;
-  isSeeding: boolean;
-  isSeedingComplete: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -70,74 +67,9 @@ const getInitialState = <T,>(key: string, fallback: T): T => {
     }
 }
 
-const useDataSeeder = () => {
-    const { firestore } = useFirebase();
-    const { toast } = useToast();
-    const [isSeeding, setIsSeeding] = useState(false);
-    const [isSeedingComplete, setIsSeedingComplete] = useState(() => getInitialState('seedingComplete', false));
-
-    useEffect(() => {
-        try {
-            window.localStorage.setItem('seedingComplete', JSON.stringify(isSeedingComplete));
-        } catch (error) {
-            console.error("Failed to save seeding status to localStorage:", error);
-        }
-    }, [isSeedingComplete]);
-
-    const seedDatabase = useCallback(async () => {
-        if (isSeeding || isSeedingComplete) {
-            toast({ title: "Seeding Status", description: isSeeding ? "Seeding already in progress." : "Database has already been seeded.", variant: isSeeding ? 'default' : 'destructive' });
-            return;
-        }
-
-        setIsSeeding(true);
-        toast({ title: "Database Seeding Started", description: "Populating Firestore with initial data..." });
-
-        try {
-            const patientsCollection = collection(firestore, 'patients');
-            initialPatients.forEach(patient => {
-                addDocumentNonBlocking(patientsCollection, patient);
-            });
-
-            const appointmentsCollection = collection(firestore, 'appointments');
-            initialAppointments.forEach(appointment => {
-                addDocumentNonBlocking(appointmentsCollection, appointment);
-            });
-
-            const usersCollection = collection(firestore, 'users');
-            allUsers.forEach(user => {
-                const userDocRef = doc(usersCollection, user.uid);
-                setDocumentNonBlocking(userDocRef, user, { merge: true });
-            });
-            
-            const bedsCollection = collection(firestore, 'beds');
-            const wards = ['General', 'ICU', 'Maternity'];
-            let bedCounter = 1;
-            wards.forEach(ward => {
-                for(let i=0; i< (ward === 'ICU' ? 5 : 10); i++) {
-                    const bedId = `${ward.charAt(0)}-${100+bedCounter++}`;
-                    addDocumentNonBlocking(bedsCollection, { bedId, ward, status: 'Available' });
-                }
-            });
-
-            toast({ title: "Database Seeding In Progress", description: "Your data is being added to Firestore. It will appear shortly." });
-            setIsSeedingComplete(true);
-        } catch (error) {
-            console.error("Error seeding database:", error);
-            toast({ title: "Seeding Failed", description: "Could not write initial data to Firestore. Check console and security rules.", variant: 'destructive' });
-        } finally {
-            setIsSeeding(false);
-        }
-    }, [firestore, isSeeding, isSeedingComplete, toast]);
-
-    return { DataSeeder: seedDatabase, isSeeding, isSeedingComplete };
-};
-
-
 export function AppProvider({ children }: { children: ReactNode }) {
   const { firestore } = useFirebase();
   const { user: authUser } = useUser();
-  const { DataSeeder, isSeeding, isSeedingComplete } = useDataSeeder();
   const { toast } = useToast();
 
   const patientsRef = useMemoFirebase(() => authUser ? collection(firestore, 'patients') : null, [firestore, authUser]);
@@ -313,7 +245,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearAllData = async () => {
     toast({ title: "Clearing Data...", description: "Removing all data from Firestore collections and local storage." });
     try {
-        const collectionsToDelete = ['patients', 'appointments', 'beds', 'users'];
+        const collectionsToDelete = ['patients', 'appointments', 'beds'];
         const batch = writeBatch(firestore);
 
         for (const collectionName of collectionsToDelete) {
@@ -363,9 +295,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     generateBillForPatient,
     updateSettings,
     clearAllData,
-    DataSeeder,
-    isSeeding,
-    isSeedingComplete,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
