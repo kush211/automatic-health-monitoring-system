@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from "react";
 import {
@@ -40,6 +41,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DateWithAI } from "@/components/date-with-ai";
+import { useAuth } from "@/hooks/use-auth";
 
 const data: Payment[] = [
   {
@@ -87,7 +89,10 @@ export type Payment = {
   diagnosis: string;
 };
 
-export const columns: ColumnDef<Payment>[] = [
+export const GetColumns = (): ColumnDef<Payment>[] => {
+    const { role } = useAuth();
+    
+    return [
   {
     id: "select",
     header: ({ table }) => (
@@ -154,9 +159,11 @@ export const columns: ColumnDef<Payment>[] = [
 
       return (
         <div className="flex items-center justify-end gap-2">
-            <Link href={`/patients/${payment.id}`} passHref>
-              <Button variant="outline" size="sm">View Patient</Button>
-            </Link>
+            {role === 'Doctor' && (
+                <Link href={`/patients/${payment.id}`} passHref>
+                <Button variant="outline" size="sm">View Patient</Button>
+                </Link>
+            )}
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -180,6 +187,7 @@ export const columns: ColumnDef<Payment>[] = [
     },
   },
 ];
+}
 
 export default function PatientsPage() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -189,6 +197,8 @@ export default function PatientsPage() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  
+  const columns = React.useMemo(() => GetColumns(), []);
 
   const table = useReactTable({
     data,
@@ -324,3 +334,4 @@ export default function PatientsPage() {
     </div>
   );
 }
+

@@ -87,7 +87,7 @@ export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, sho
                         </Link>
                     </Button>
                 )}
-                 {appointment.status === 'Completed' && (
+                 {appointment.status === 'Completed' && role === 'Doctor' && (
                     <Button variant="ghost" size="sm" asChild>
                          <Link href={`/patients/${appointment.patientId.split('-')[1]}`}>
                             View Record
@@ -121,3 +121,4 @@ export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, sho
     </div>
   );
 }
+
