@@ -102,7 +102,6 @@ export default function AdminDashboardPage() {
                 <TableHead>Role</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>User ID</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -122,11 +121,6 @@ export default function AdminDashboardPage() {
                   </TableCell>
                   <TableCell>{u.email}</TableCell>
                   <TableCell className="font-mono text-xs">{u.uid}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm">
-                      Edit
-                    </Button>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
