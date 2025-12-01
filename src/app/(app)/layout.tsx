@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -11,6 +12,7 @@ import { ReceptionistSidebar } from "@/components/receptionist-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AdminSidebar } from "@/components/admin-sidebar";
 
 function DashboardSidebarSkeleton() {
   return (
@@ -60,6 +62,8 @@ export default function AppLayout({
             return <NurseSidebar />;
         case 'Receptionist':
             return <ReceptionistSidebar />;
+        case 'Admin':
+            return <AdminSidebar />;
         default:
             return null;
     }

@@ -1,4 +1,5 @@
 
+
 import { Patient, User, Appointment, RecentActivity, MonthlyVisit } from "./types";
 
 export const adminUser: User = {

@@ -27,7 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 
 const menuItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/users", label: "User Management", icon: Users },
   { href: "/admin/settings", label: "System Settings", icon: Settings },
   { href: "/admin/security", label: "Security Logs", icon: Shield },
@@ -41,7 +41,7 @@ const bottomMenuItems = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const isActive = (href: string) => pathname.startsWith(href) && (href !== '/dashboard' || pathname === '/dashboard');
+  const isActive = (href: string) => pathname.startsWith(href);
 
   if (!user) return null;
 
