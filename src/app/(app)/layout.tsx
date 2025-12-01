@@ -11,7 +11,6 @@ import { ReceptionistSidebar } from "@/components/receptionist-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AdminSidebar } from "@/components/admin-sidebar";
 
 export default function AppLayout({
   children,
@@ -27,10 +26,12 @@ export default function AppLayout({
             <div className="h-svh w-[16rem] p-2">
                 <div className="flex h-full w-full flex-col bg-muted rounded-lg p-2 gap-4">
                     <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-8 w-full" />
+                    <div className="mt-4 space-y-2">
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                    </div>
                     <div className="flex-grow"></div>
                     <Skeleton className="h-12 w-full" />
                 </div>
@@ -57,6 +58,8 @@ export default function AppLayout({
         case 'Receptionist':
             return <ReceptionistSidebar />;
         default:
+            // This case should ideally not be hit if isLoading is handled correctly,
+            // but returning null is safe as a fallback.
             return null;
     }
   }
