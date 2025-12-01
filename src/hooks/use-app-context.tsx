@@ -115,7 +115,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setPatients(snapshot.docs.map(doc => ({id: doc.id, ...doc.data()} as Patient)));
       });
       const appointmentsUnsub = onSnapshot(collection(firestore, 'appointments'), (snapshot) => {
-        setAppointments(snapshot.docs.map(doc => ({id: doc.id, ...doc.data()} as Appointment)));
+        setAppointments(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Appointment)));
       });
 
       return () => {
