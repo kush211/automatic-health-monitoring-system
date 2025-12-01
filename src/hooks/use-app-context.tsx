@@ -1,12 +1,12 @@
 
-
 'use client';
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
-import { appointments as initialAppointments, initialPatients, doctors, initialBeds } from '@/lib/data';
-import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
+import { initialPatients, doctors, appointments as initialAppointments } from '@/lib/data';
+import { useCollection, useUser, useMemoFirebase } from '@/firebase';
 import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { useFirebase } from '@/firebase/provider';
 
 interface NewAppointmentPayload {
     patient: Patient;
@@ -65,15 +65,48 @@ const getInitialState = <T,>(key: string, fallback: T): T => {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { firestore } = useFirebase();
+  const { user: authUser, isUserLoading } = useUser();
 
-  const patientsRef = useMemoFirebase(() => collection(firestore, 'patients'), [firestore]);
-  const { data: patients = [] } = useCollection<Patient>(patientsRef);
+  // Conditionally create refs only when user is logged in
+  const patientsRef = useMemoFirebase(() => authUser ? collection(firestore, 'patients') : null, [firestore, authUser]);
+  const { data: patientsData } = useCollection<Patient>(patientsRef);
 
-  const appointmentsRef = useMemoFirebase(() => collection(firestore, 'appointments'), [firestore]);
-  const { data: appointments = [] } = useCollection<Appointment>(appointmentsRef);
+  const appointmentsRef = useMemoFirebase(() => authUser ? collection(firestore, 'appointments') : null, [firestore, authUser]);
+  const { data: appointmentsData } = useCollection<Appointment>(appointmentsRef);
   
-  const bedsRef = useMemoFirebase(() => collection(firestore, 'beds'), [firestore]);
-  const { data: beds = [] } = useCollection<Bed>(bedsRef);
+  const bedsRef = useMemoFirebase(() => authUser ? collection(firestore, 'beds') : null, [firestore, authUser]);
+  const { data: bedsData } = useCollection<Bed>(bedsRef);
+
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [beds, setBeds] = useState<Bed[]>([]);
+
+  useEffect(() => {
+    if (patientsData) {
+      setPatients(patientsData);
+    } else if (!isUserLoading) {
+      // Fallback to initial data if not loading and no data from firestore
+      setPatients(initialPatients);
+    }
+  }, [patientsData, isUserLoading]);
+
+  useEffect(() => {
+    if (appointmentsData) {
+      setAppointments(appointmentsData);
+    } else if (!isUserLoading) {
+      setAppointments(initialAppointments);
+    }
+  }, [appointmentsData, isUserLoading]);
+  
+  useEffect(() => {
+    if (bedsData) {
+      setBeds(bedsData);
+    } else if (!isUserLoading) {
+      // Since initialBeds was removed, we just initialize with empty array if no data
+      setBeds([]);
+    }
+  }, [bedsData, isUserLoading]);
+
 
   const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>(() => getInitialState('dischargedPatients', []));
   const [billedPatients, setBilledPatients] = useState<Bill[]>(() => getInitialState('billedPatients', []));
@@ -117,7 +150,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
   
   const addAppointment = async ({ patient, doctor, dateTime, status = 'Scheduled' }: NewAppointmentPayload) => {
-    const newAppointment: Omit<Appointment, 'id'> = {
+    const appointmentsCollection = collection(firestore, 'appointments');
+    await addDoc(appointmentsCollection, {
         patientId: patient.patientId,
         patientName: patient.name,
         patientAvatarUrl: patient.avatarUrl,
@@ -127,15 +161,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         status,
         createdBy: 'rec1', // Hardcoded for demo
         createdAt: new Date().toISOString(),
-    };
-    const appointmentsCollection = collection(firestore, 'appointments');
-    await addDoc(appointmentsCollection, newAppointment);
+    });
   };
   
   const addPatient = async (payload: NewPatientPayload) => {
     const newPatientId = `PID-${patients.length + 1}-${new Date().getFullYear()}`;
     const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
-    const newPatient: Omit<Patient, 'id'> = {
+    const newPatientData = {
         ...payload,
         patientId: newPatientId,
         primaryDoctorName: primaryDoctor?.name || 'Unassigned',
@@ -146,18 +178,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     const patientsCollection = collection(firestore, 'patients');
-    await addDoc(patientsCollection, newPatient);
+    await addDoc(patientsCollection, newPatientData);
   };
 
   const addBed = async (ward: 'General' | 'ICU' | 'Maternity') => {
     const newBedId = `Bed ${Math.floor(Math.random() * 900) + 100}`;
-    const newBed: Omit<Bed, 'id'> = {
+    const newBedData = {
       bedId: newBedId,
       ward: ward,
       status: 'Available',
     };
     const bedsCollection = collection(firestore, 'beds');
-    await addDoc(bedsCollection, newBed);
+    await addDoc(bedsCollection, newBedData);
   };
 
   const assignPatientToBed = async (bedId: string, patient: Patient) => {
