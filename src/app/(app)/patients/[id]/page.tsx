@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import {
   Avatar,
@@ -110,8 +110,10 @@ export default function PatientDetailPage() {
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
   const [isUploadReportModalOpen, setIsUploadReportModalOpen] = useState(false);
-  const [medicalHistory, setMedicalHistory] = useState(initialMedicalHistory);
-  const [labReports, setLabReports] = useState(initialLabReports);
+  
+  // This state will be used to conditionally load initialMedicalHistory for a specific patient
+  const [medicalHistory, setMedicalHistory] = useState<MedicalRecord[]>([]);
+  const [labReports, setLabReports] = useState<LabReport[]>([]);
   
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState<MedicalRecord | null>(null);
@@ -125,6 +127,23 @@ export default function PatientDetailPage() {
   const patient = patients.find(
     (p) => p.patientId === `PID-${id}-2024`
   );
+
+  useEffect(() => {
+    if (patient) {
+      // Simulate fetching patient-specific data.
+      // For PID-1-2024, we load mock data. For others, we start with none.
+      if (patient.patientId === 'PID-1-2024') {
+        setMedicalHistory(initialMedicalHistory);
+        setLabReports(initialLabReports);
+      } else {
+        setMedicalHistory([]);
+        setLabReports([]);
+        // If there are no medical records, automatically open the add new record modal.
+        setIsNewRecordModalOpen(true);
+      }
+    }
+  }, [patient]);
+
 
   if (!patient) {
     notFound();
@@ -282,6 +301,7 @@ export default function PatientDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {labReports.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -304,6 +324,11 @@ export default function PatientDetailPage() {
                   ))}
                 </TableBody>
               </Table>
+              ) : (
+                <div className="text-center text-muted-foreground py-6">
+                    No lab reports found.
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -317,6 +342,7 @@ export default function PatientDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+             {medicalHistory.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -360,6 +386,12 @@ export default function PatientDetailPage() {
                   ))}
                 </TableBody>
               </Table>
+              ) : (
+                <div className="text-center text-muted-foreground py-12">
+                    <p>No medical history found for this patient.</p>
+                    <Button variant="link" onClick={() => setIsNewRecordModalOpen(true)}>Add the first record</Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -438,3 +470,5 @@ export default function PatientDetailPage() {
     </div>
   );
 }
+
+    
