@@ -52,6 +52,7 @@ import { UploadLabReportModal } from '@/components/upload-lab-report-modal';
 import { ViewLabReportModal } from '@/components/view-lab-report-modal';
 import { MedicalRecordDetailModal } from '@/components/medical-record-detail-modal';
 import { useAuth } from '@/hooks/use-auth';
+import { useAppContext } from '@/hooks/use-app-context';
 
 const initialMedicalHistory = [
   {
@@ -96,6 +97,7 @@ type LabReport = typeof initialLabReports[0];
 export default function PatientDetailPage() {
   const params = useParams();
   const { role } = useAuth();
+  const { settings } = useAppContext();
   const id = params.id as string;
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AIRiskAnalysisOutput | null>(null);
@@ -220,11 +222,11 @@ export default function PatientDetailPage() {
         <div className="flex items-start gap-2">
           {role === 'Doctor' && (
             <div className="flex flex-col sm:flex-row gap-2">
-              <Button variant="destructive" onClick={() => handleRiskAnalysis()} disabled={isRiskLoading}>
+              <Button variant="destructive" onClick={() => handleRiskAnalysis()} disabled={isRiskLoading || !settings.aiRiskAnalysisEnabled}>
                 <AlertCircle className="mr-2 h-4 w-4" />
                 {isRiskLoading ? 'Analyzing...' : 'Risk Analysis'}
               </Button>
-              <Button variant="outline" onClick={() => handleGenerateSummary()} disabled={isSummaryLoading}>
+              <Button variant="outline" onClick={() => handleGenerateSummary()} disabled={isSummaryLoading || !settings.aiPatientSummaryEnabled}>
                 <FileText className="mr-2 h-4 w-4" />
                 {isSummaryLoading ? 'Generating...' : 'Generate Summary'}
               </Button>

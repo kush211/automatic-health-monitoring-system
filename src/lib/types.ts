@@ -83,3 +83,8 @@ export type MonthlyVisit = {
   month: string;
   visits: number;
 };
+
+export type AppSettings = {
+  aiRiskAnalysisEnabled: boolean;
+  aiPatientSummaryEnabled: boolean;
+};

@@ -2,9 +2,8 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import type { Appointment, Bed, Bill, Patient, User } from '@/lib/types';
+import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
 import { appointments as initialAppointments, patients as allPatients } from '@/lib/data';
-import { BillableServices } from '@/lib/services';
 
 const initialBeds: Bed[] = [
   {
@@ -28,6 +27,11 @@ const initialBeds: Bed[] = [
   },
 ];
 
+const initialSettings: AppSettings = {
+    aiRiskAnalysisEnabled: true,
+    aiPatientSummaryEnabled: true,
+};
+
 interface NewAppointmentPayload {
     patient: Patient;
     doctor: User;
@@ -40,6 +44,7 @@ interface AppContextType {
   beds: Bed[];
   dischargedPatientsForBilling: Patient[];
   billedPatients: Bill[];
+  settings: AppSettings;
   transferAppointment: (appointmentId: string, newDoctor: User) => void;
   updateAppointmentStatus: (appointmentId: string, status: Appointment['status']) => void;
   addAppointment: (payload: NewAppointmentPayload) => void;
@@ -47,6 +52,8 @@ interface AppContextType {
   assignPatientToBed: (bedId: string, patient: Patient) => void;
   dischargePatientFromBed: (bedId: string) => void;
   generateBillForPatient: (patientId: string, billDetails: Omit<Bill, 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
+  updateSettings: (newSettings: Partial<AppSettings>) => void;
+  clearAllData: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -69,6 +76,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [beds, setBeds] = useState<Bed[]>(() => getInitialState('beds', initialBeds));
   const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>(() => getInitialState('dischargedPatients', []));
   const [billedPatients, setBilledPatients] = useState<Bill[]>(() => getInitialState('billedPatients', []));
+  const [settings, setSettings] = useState<AppSettings>(() => getInitialState('appSettings', initialSettings));
 
   useEffect(() => {
     try {
@@ -101,6 +109,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.error("Failed to save billed patients to localStorage:", error);
     }
   }, [billedPatients]);
+
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('appSettings', JSON.stringify(settings));
+    } catch (error) {
+        console.error("Failed to save settings to localStorage:", error);
+    }
+  }, [settings]);
 
 
   const transferAppointment = (appointmentId: string, newDoctor: User) => {
@@ -206,12 +222,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setDischargedPatientsForBilling(prev => prev.filter(p => p.patientId !== patientId));
   }
 
+  const updateSettings = (newSettings: Partial<AppSettings>) => {
+    setSettings(prev => ({ ...prev, ...newSettings }));
+  }
+  
+  const clearAllData = () => {
+    window.localStorage.removeItem('appointments');
+    window.localStorage.removeItem('beds');
+    window.localStorage.removeItem('dischargedPatients');
+    window.localStorage.removeItem('billedPatients');
+    window.localStorage.removeItem('appSettings');
+    setAppointments(initialAppointments);
+    setBeds(initialBeds);
+    setDischargedPatientsForBilling([]);
+    setBilledPatients([]);
+    setSettings(initialSettings);
+  };
+
 
   const value = {
     appointments,
     beds,
     dischargedPatientsForBilling,
     billedPatients,
+    settings,
     transferAppointment,
     updateAppointmentStatus,
     addAppointment,
@@ -219,6 +253,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     assignPatientToBed,
     dischargePatientFromBed,
     generateBillForPatient,
+    updateSettings,
+    clearAllData,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

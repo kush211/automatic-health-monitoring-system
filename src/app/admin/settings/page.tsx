@@ -17,9 +17,11 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { SlidersHorizontal, Save, BrainCircuit, DatabaseZap, AlertTriangle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useAppContext } from '@/hooks/use-app-context';
 
 export default function SystemSettingsPage() {
   const { toast } = useToast();
+  const { settings, updateSettings, clearAllData } = useAppContext();
 
   // State for clinic info
   const [clinicName, setClinicName] = useState('HealthHub Rural Clinic');
@@ -27,9 +29,7 @@ export default function SystemSettingsPage() {
   const [clinicPhone, setClinicPhone] = useState('+91-1234567890');
   const [isSavingInfo, setIsSavingInfo] = useState(false);
 
-  // State for AI features
-  const [aiRiskAnalysis, setAiRiskAnalysis] = useState(true);
-  const [aiPatientSummary, setAiPatientSummary] = useState(true);
+  // State for AI features saving
   const [isSavingAi, setIsSavingAi] = useState(false);
   
   const handleInfoSave = (e: React.FormEvent) => {
@@ -47,18 +47,18 @@ export default function SystemSettingsPage() {
   const handleAiSave = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingAi(true);
+    // The actual saving is handled by the onCheckedChange, this is just for UX feedback
     setTimeout(() => {
       toast({
         title: 'AI Settings Updated',
         description: 'AI feature configuration has been saved.',
       });
       setIsSavingAi(false);
-    }, 1500);
+    }, 1000);
   };
 
   const handleClearData = () => {
-    // In a real app, you might want to be more specific, but for a demo, localStorage is fine.
-    localStorage.clear();
+    clearAllData();
     toast({
         title: 'Application Data Cleared',
         description: 'All local data has been reset. Please refresh the page.',
@@ -145,8 +145,8 @@ export default function SystemSettingsPage() {
                 </div>
                 <Switch
                   id="ai-risk-analysis"
-                  checked={aiRiskAnalysis}
-                  onCheckedChange={setAiRiskAnalysis}
+                  checked={settings.aiRiskAnalysisEnabled}
+                  onCheckedChange={(checked) => updateSettings({ aiRiskAnalysisEnabled: checked })}
                 />
               </div>
               <div className="flex items-center justify-between rounded-lg border p-4">
@@ -160,8 +160,8 @@ export default function SystemSettingsPage() {
                 </div>
                 <Switch
                   id="ai-patient-summary"
-                  checked={aiPatientSummary}
-                  onCheckedChange={setAiPatientSummary}
+                  checked={settings.aiPatientSummaryEnabled}
+                  onCheckedChange={(checked) => updateSettings({ aiPatientSummaryEnabled: checked })}
                 />
               </div>
             </CardContent>
