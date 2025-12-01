@@ -270,7 +270,7 @@ export function ReceptionistDashboard() {
                   <TableBody>
                     {filteredAppointments.length > 0 ? (
                        filteredAppointments.map((app, index) => (
-                        <TableRow key={app.id}>
+                        <TableRow key={app.appointmentId}>
                             <TableCell>{mounted ? format(new Date(app.dateTime), 'h:mm a') : '--:-- --'}</TableCell>
                             <TableCell>
                                 <div className='flex items-center gap-3'>
