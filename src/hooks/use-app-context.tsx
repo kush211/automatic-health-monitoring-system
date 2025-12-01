@@ -39,6 +39,7 @@ interface AppContextType {
   beds: Bed[];
   dischargedPatientsForBilling: Patient[];
   transferAppointment: (appointmentId: string, newDoctor: User) => void;
+  updateAppointmentStatus: (appointmentId: string, status: Appointment['status']) => void;
   addAppointment: (payload: NewAppointmentPayload) => void;
   addBed: (ward: 'General' | 'ICU' | 'Maternity') => void;
   assignPatientToBed: (bedId: string, patient: Patient) => void;
@@ -60,6 +61,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ? { ...app, doctorId: newDoctor.uid, doctorName: newDoctor.name }
           : app
       )
+    );
+  };
+
+  const updateAppointmentStatus = (appointmentId: string, status: Appointment['status']) => {
+    setAppointments(prev =>
+        prev.map(app =>
+            app.appointmentId === appointmentId ? { ...app, status } : app
+        )
     );
   };
   
@@ -141,6 +150,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     beds,
     dischargedPatientsForBilling,
     transferAppointment,
+    updateAppointmentStatus,
     addAppointment,
     addBed,
     assignPatientToBed,

@@ -21,7 +21,7 @@ export default function AppointmentsPage() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const { user, role } = useAuth();
-  const { appointments, transferAppointment } = useAppContext();
+  const { appointments, transferAppointment, updateAppointmentStatus } = useAppContext();
   const { toast } = useToast();
 
   const [date, setDate] = useState<Date | undefined>(new Date('2024-07-28T00:00:00Z'));
@@ -73,11 +73,13 @@ export default function AppointmentsPage() {
   };
 
   const handleMarkAsArrived = (appointmentId: string) => {
-    // This logic would also be moved to the context in a real app
-    // For now, we find the appointment to navigate
+    updateAppointmentStatus(appointmentId, 'Arrived');
     const appointment = appointments.find(app => app.appointmentId === appointmentId);
     if (!appointment) return;
-    router.push(`/patients/${appointment.patientId.split('-')[1]}`);
+    toast({
+        title: 'Patient Arrived',
+        description: `${appointment.patientName} has been marked as arrived.`,
+    });
   };
 
   const formattedSelectedDate = useMemo(() => {
