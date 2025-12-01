@@ -84,6 +84,27 @@ const initialMedicalHistory = [
   },
 ];
 
+const sunitaGuptaMedicalHistory = [
+    {
+      date: '05/05/2024',
+      diagnosis: 'Seasonal Allergies',
+      doctor: 'Dr. Priya Sharma',
+      prescription: true,
+      prescriptionDetails: 'Cetirizine 10mg, 1 tablet daily at night',
+      labReports: 0,
+      notes: 'Patient reports sneezing and itchy eyes. Advised to avoid pollen.',
+    },
+    {
+      date: '10/01/2024',
+      diagnosis: 'Annual Physical Exam',
+      doctor: 'Dr. Priya Sharma',
+      prescription: false,
+      prescriptionDetails: '',
+      labReports: 0,
+      notes: 'Routine check-up. All vitals are normal. Patient is healthy.',
+    },
+];
+
 const initialLabReports = [
   {
     date: '2024-06-10',
@@ -131,10 +152,12 @@ export default function PatientDetailPage() {
   useEffect(() => {
     if (patient) {
       // Simulate fetching patient-specific data.
-      // For PID-1-2024, we load mock data. For others, we start with none.
       if (patient.patientId === 'PID-1-2024') {
         setMedicalHistory(initialMedicalHistory);
         setLabReports(initialLabReports);
+      } else if (patient.patientId === 'PID-4-2024') {
+        setMedicalHistory(sunitaGuptaMedicalHistory);
+        setLabReports([]);
       } else {
         setMedicalHistory([]);
         setLabReports([]);
@@ -470,5 +493,7 @@ export default function PatientDetailPage() {
     </div>
   );
 }
+
+    
 
     
