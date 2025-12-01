@@ -21,8 +21,8 @@ export const nurseUser: User = {
 
 export const receptionistUser: User = {
     uid: 'rec1',
-    name: 'Anjali Desai',
-    email: 'anjali.desai@example.com',
+    name: 'Sunita Devi',
+    email: 'sunita.devi@example.com',
     role: 'Receptionist',
     clinicId: 'clinic123',
     avatarUrl: 'https://picsum.photos/seed/rec1/100/100',
