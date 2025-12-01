@@ -80,7 +80,7 @@ export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, sho
                         <Check className="mr-2 h-4 w-4 text-green-600" /> Mark as Arrived
                     </Button>
                 )}
-                 {appointment.status === 'Arrived' && (
+                 {appointment.status === 'Arrived' && role === 'Doctor' && (
                     <Button variant="default" size="sm" asChild>
                         <Link href={`/patients/${appointment.patientId.split('-')[1]}`}>
                             <Video className="mr-2 h-4 w-4" /> Start Consultation
