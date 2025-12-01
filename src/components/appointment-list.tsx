@@ -19,9 +19,10 @@ import {
 interface AppointmentListProps {
   appointments: Appointment[];
   onTransfer: (appointment: Appointment) => void;
+  showTimes?: boolean;
 }
 
-export function AppointmentList({ appointments, onTransfer }: AppointmentListProps) {
+export function AppointmentList({ appointments, onTransfer, showTimes = false }: AppointmentListProps) {
   if (appointments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -62,7 +63,9 @@ export function AppointmentList({ appointments, onTransfer }: AppointmentListPro
                 <p className="font-semibold text-foreground">{appointment.patientName}</p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />
-                    <span>{format(new Date(appointment.dateTime), 'h:mm a', { timeZone: 'UTC' })}</span>
+                    <span>
+                      {showTimes ? format(new Date(appointment.dateTime), 'h:mm a', { timeZone: 'UTC' }) : '—'}
+                    </span>
                 </div>
               </div>
             </div>
@@ -114,5 +117,3 @@ export function AppointmentList({ appointments, onTransfer }: AppointmentListPro
     </div>
   );
 }
-
-    
