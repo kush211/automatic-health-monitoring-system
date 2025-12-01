@@ -1,7 +1,7 @@
 
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Appointment, Bed, Patient, User } from '@/lib/types';
 import { appointments as initialAppointments, patients as allPatients } from '@/lib/data';
 
@@ -49,10 +49,48 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const getInitialState = <T>(key: string, fallback: T): T => {
+    if (typeof window === 'undefined') {
+        return fallback;
+    }
+    try {
+        const item = window.localStorage.getItem(key);
+        return item ? JSON.parse(item) : fallback;
+    } catch (error) {
+        console.error(`Error reading from localStorage for key "${key}":`, error);
+        return fallback;
+    }
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
-  const [beds, setBeds] = useState<Bed[]>(initialBeds);
-  const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>(() => getInitialState('appointments', initialAppointments));
+  const [beds, setBeds] = useState<Bed[]>(() => getInitialState('beds', initialBeds));
+  const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>(() => getInitialState('dischargedPatients', []));
+
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('appointments', JSON.stringify(appointments));
+    } catch (error) {
+        console.error("Failed to save appointments to localStorage:", error);
+    }
+  }, [appointments]);
+  
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('beds', JSON.stringify(beds));
+    } catch (error) {
+        console.error("Failed to save beds to localStorage:", error);
+    }
+  }, [beds]);
+
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('dischargedPatients', JSON.stringify(dischargedPatientsForBilling));
+    } catch (error) {
+        console.error("Failed to save discharged patients to localStorage:", error);
+    }
+  }, [dischargedPatientsForBilling]);
+
 
   const transferAppointment = (appointmentId: string, newDoctor: User) => {
     setAppointments(prev =>
@@ -119,7 +157,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const bedToDischarge = beds.find(b => b.bedId === bedId);
     if (bedToDischarge && bedToDischarge.assignedPatientId) {
         const patientToBill = allPatients.find(p => p.patientId === bedToDischarge.assignedPatientId);
-        if (patientToBill) {
+        if (patientToBill && !dischargedPatientsForBilling.find(p => p.patientId === patientToBill.patientId)) {
             setDischargedPatientsForBilling(prev => [...prev, patientToBill]);
         }
     }
