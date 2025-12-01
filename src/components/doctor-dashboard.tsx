@@ -21,10 +21,10 @@ export function DoctorDashboard() {
     const { patients, appointments, beds } = useAppContext();
 
     const dashboardKpis = useMemo(() => {
-        const totalPatients = patients.length;
-        const visitsThisMonth = appointments.filter(app => isThisMonth(new Date(app.dateTime))).length;
-        const occupiedBeds = beds.filter(b => b.status === 'Occupied').length;
-        const totalBeds = beds.length;
+        const totalPatients = patients ? patients.length : 0;
+        const visitsThisMonth = appointments ? appointments.filter(app => isThisMonth(new Date(app.dateTime))).length : 0;
+        const occupiedBeds = beds ? beds.filter(b => b.status === 'Occupied').length : 0;
+        const totalBeds = beds ? beds.length : 0;
         const bedOccupancy = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
 
         return [
