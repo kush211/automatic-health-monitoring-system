@@ -89,106 +89,6 @@ export type Payment = {
   diagnosis: string;
 };
 
-export const GetColumns = (): ColumnDef<Payment>[] => {
-    const { role } = useAuth();
-    
-    return [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("name")}</div>
-    ),
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("status")}</div>
-    ),
-  },
-  {
-    accessorKey: "lastVisit",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Last Visit
-          <ChevronsUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <DateWithAI date={new Date(row.getValue("lastVisit"))} />,
-  },
-  {
-    accessorKey: "diagnosis",
-    header: () => <div className="text-right">Diagnosis</div>,
-    cell: ({ row }) => {
-      return <div className="text-right font-medium">{row.getValue("diagnosis")}</div>;
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original;
-
-      return (
-        <div className="flex items-center justify-end gap-2">
-            {role === 'Doctor' && (
-                <Link href={`/patients/${payment.id}`} passHref>
-                <Button variant="outline" size="sm">View Patient</Button>
-                </Link>
-            )}
-            <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(payment.id)}
-                >
-                Copy patient ID
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>View payment details</DropdownMenuItem>
-            </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
-      );
-    },
-  },
-];
-}
-
 export default function PatientsPage() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -198,7 +98,103 @@ export default function PatientsPage() {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   
-  const columns = React.useMemo(() => GetColumns(), []);
+  const { role } = useAuth();
+  
+  const columns = React.useMemo<ColumnDef<Payment>[]>(() => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: "name",
+        header: "Name",
+        cell: ({ row }) => (
+          <div className="capitalize">{row.getValue("name")}</div>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => (
+          <div className="capitalize">{row.getValue("status")}</div>
+        ),
+      },
+      {
+        accessorKey: "lastVisit",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Last Visit
+              <ChevronsUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => <DateWithAI date={new Date(row.getValue("lastVisit"))} />,
+      },
+      {
+        accessorKey: "diagnosis",
+        header: () => <div className="text-right">Diagnosis</div>,
+        cell: ({ row }) => {
+          return <div className="text-right font-medium">{row.getValue("diagnosis")}</div>;
+        },
+      },
+      {
+        id: "actions",
+        enableHiding: false,
+        cell: ({ row }) => {
+          const payment = row.original;
+
+          return (
+            <div className="flex items-center justify-end gap-2">
+                {role === 'Doctor' && (
+                    <Link href={`/patients/${payment.id}`} passHref>
+                    <Button variant="outline" size="sm">View Patient</Button>
+                    </Link>
+                )}
+                <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem
+                    onClick={() => navigator.clipboard.writeText(payment.id)}
+                    >
+                    Copy patient ID
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>View payment details</DropdownMenuItem>
+                </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+          );
+        },
+      },
+    ], [role]);
 
   const table = useReactTable({
     data,
@@ -334,4 +330,3 @@ export default function PatientsPage() {
     </div>
   );
 }
-
