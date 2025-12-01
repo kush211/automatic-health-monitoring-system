@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import {
@@ -29,41 +29,15 @@ import type { Patient, Bill, BillItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { BillableServices } from '@/lib/services';
 import { useAppContext } from '@/hooks/use-app-context';
+import { collection, getDocs, getFirestore } from 'firebase/firestore';
+import { Skeleton } from './ui/skeleton';
 
 interface GenerateBillModalProps {
   isOpen: boolean;
   onClose: () => void;
   patient: Patient;
-  onBillGenerated: (patientId: string, billDetails: Omit<Bill, 'id' | 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
+  onBillGenerated: (patientId: string) => void;
 }
-
-// Mock function to get charges for a patient
-const getPatientCharges = (patient: Patient): { billItems: BillItem[], subtotal: number, insuranceAdjustment: number, totalDue: number } => {
-    // In a real app, this would come from a database of services rendered.
-    // For now, we'll create a sample charge sheet based on the mock data.
-    const items = [
-        { service: BillableServices['icu_stay'], qty: 5 },
-        { service: BillableServices['consult_fee'], qty: 2 },
-        { service: BillableServices['angioplasty'], qty: 1 },
-        { service: BillableServices['lipid_profile'], qty: 1 },
-        { service: BillableServices['med_atorvastatin'], qty: 30 },
-        { service: BillableServices['med_aspirin'], qty: 30 },
-    ];
-    
-    const billItems = items.map(item => ({
-        name: item.service.name,
-        unitPrice: item.service.unitPrice,
-        qty: item.qty,
-        total: item.service.unitPrice * item.qty,
-    }));
-
-    const subtotal = billItems.reduce((acc, item) => acc + item.total, 0);
-    const insuranceAdjustment = -20000; // Mock adjustment
-    const totalDue = subtotal + insuranceAdjustment;
-
-    return { billItems, subtotal, insuranceAdjustment, totalDue };
-};
-
 
 export function GenerateBillModal({
   isOpen,
@@ -73,8 +47,61 @@ export function GenerateBillModal({
 }: GenerateBillModalProps) {
   const billRef = useRef(null);
   const { toast } = useToast();
-  
-  const { billItems, subtotal, insuranceAdjustment, totalDue } = getPatientCharges(patient);
+  const [billItems, setBillItems] = useState<BillItem[]>([]);
+  const [subtotal, setSubtotal] = useState(0);
+  const [totalDue, setTotalDue] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const insuranceAdjustment = -20000; // Mock adjustment
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const fetchBillableServices = async () => {
+        setIsLoading(true);
+        const db = getFirestore();
+        const billableServicesRef = collection(db, 'patients', patient.patientId, 'billable_services');
+        const servicesSnapshot = await getDocs(billableServicesRef);
+        
+        let calculatedSubtotal = 0;
+        const items: BillItem[] = [];
+
+        servicesSnapshot.forEach(doc => {
+            const service = doc.data();
+            const serviceInfo = BillableServices[service.serviceCode as keyof typeof BillableServices];
+            if (serviceInfo) {
+                const total = serviceInfo.unitPrice * service.quantity;
+                items.push({
+                    name: serviceInfo.name,
+                    unitPrice: serviceInfo.unitPrice,
+                    qty: service.quantity,
+                    total: total,
+                });
+                calculatedSubtotal += total;
+            }
+        });
+        
+        // Add a mock consultation fee if no other services are present
+        if (items.length === 0) {
+            const consultService = BillableServices['consult_fee'];
+            const total = consultService.unitPrice * 1;
+            items.push({
+                name: consultService.name,
+                unitPrice: consultService.unitPrice,
+                qty: 1,
+                total: total,
+            });
+            calculatedSubtotal += total;
+        }
+
+        setBillItems(items);
+        setSubtotal(calculatedSubtotal);
+        setTotalDue(calculatedSubtotal + insuranceAdjustment);
+        setIsLoading(false);
+    };
+
+    fetchBillableServices();
+  }, [isOpen, patient, insuranceAdjustment]);
+
 
   const handlePrint = () => {
     if (billRef.current) {
@@ -98,19 +125,7 @@ export function GenerateBillModal({
   };
 
   const handleFinalizeBill = () => {
-    const billDetails = {
-        id: `INV-${patient.patientId.slice(4,8)}-${Date.now()}`,
-        patientId: patient.patientId,
-        items: billItems,
-        subtotal,
-        insuranceAdjustment,
-        totalDue,
-    };
-    onBillGenerated(patient.patientId, billDetails);
-    toast({
-        title: "Bill Finalized",
-        description: `The final bill for ${patient.name} has been generated.`,
-    });
+    onBillGenerated(patient.patientId);
   }
   
   return (
@@ -130,6 +145,18 @@ export function GenerateBillModal({
         
         <ScrollArea className="flex-1 min-h-0 pr-6 -mr-6">
           <div ref={billRef} className="p-4 sm:p-6 printable-area bg-background">
+            {isLoading ? (
+                <div className="space-y-6">
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                    </div>
+                     <Skeleton className="h-20 w-full" />
+                </div>
+            ) : (
               <div className="space-y-6">
                 <header className="space-y-4">
                     <div className="flex justify-between items-start">
@@ -191,6 +218,7 @@ export function GenerateBillModal({
                     </TableFooter>
                 </Table>
               </div>
+            )}
             </div>
         </ScrollArea>
 
@@ -200,13 +228,14 @@ export function GenerateBillModal({
           <Button
             variant="outline"
             onClick={handlePrint}
+            disabled={isLoading}
           >
             <Printer className="mr-2 h-4 w-4" />
             Print Bill
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleFinalizeBill}>
+            <Button onClick={handleFinalizeBill} disabled={isLoading}>
                 <CheckCircle className="mr-2 h-4 w-4" />
                 Finalize and Close
             </Button>

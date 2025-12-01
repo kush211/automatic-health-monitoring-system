@@ -6,11 +6,12 @@ import { createContext, useContext, useState, ReactNode, useEffect, useCallback 
 import type { Appointment, Bed, Bill, Patient, User, AppSettings, BillItem } from '@/lib/types';
 import { initialPatients, doctors, appointments as initialAppointments } from '@/lib/data';
 import { useUser, useMemoFirebase } from '@/firebase';
-import { collection, doc, updateDoc, writeBatch, getDocs, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, doc, updateDoc, writeBatch, getDocs, onSnapshot, query, orderBy, getDoc, addDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
 import { useToast } from './use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { BillableServices } from '@/lib/services';
+import { differenceInDays } from 'date-fns';
 
 
 interface NewAppointmentPayload {
@@ -50,7 +51,7 @@ interface AppContextType {
   addBed: (ward: 'General' | 'ICU' | 'Maternity') => void;
   assignPatientToBed: (bedId: string, patient: Patient) => void;
   dischargePatientFromBed: (bedId: string) => void;
-  generateBillForPatient: (patientId: string, billDetails: Omit<Bill, 'id' | 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
+  generateBillForPatient: (patientId: string) => void;
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   clearAllData: () => void;
 }
@@ -223,13 +224,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const dischargePatientFromBed = (bedId: string) => {
+  const dischargePatientFromBed = async (bedId: string) => {
     const bedToDischarge = beds.find(b => b.id === bedId);
-    if (bedToDischarge && bedToDischarge.assignedPatientId) {
-        const patientToBill = patients.find(p => p.patientId === bedToDischarge.assignedPatientId);
-        if (patientToBill && !dischargedPatientsForBilling.find(p => p.patientId === patientToBill.patientId)) {
-            setDischargedPatientsForBilling(prev => [...prev, patientToBill]);
-        }
+    if (!bedToDischarge || !bedToDischarge.assignedPatientId || !bedToDischarge.assignedAt) return;
+
+    // Log billable services before clearing bed
+    const admissionDate = new Date(bedToDischarge.assignedAt);
+    const dischargeDate = new Date();
+    const daysAdmitted = Math.max(differenceInDays(dischargeDate, admissionDate), 1);
+    
+    const serviceCode = bedToDischarge.ward === 'ICU' ? 'icu_stay' : 'general_stay';
+
+    const billableServicesRef = collection(firestore, 'patients', bedToDischarge.assignedPatientId, 'billable_services');
+    await addDoc(billableServicesRef, {
+        patientId: bedToDischarge.assignedPatientId,
+        serviceCode: serviceCode,
+        quantity: daysAdmitted,
+        recordedBy: authUser?.uid || 'system',
+        recordedAt: new Date().toISOString(),
+    });
+
+    const patientToBill = patients.find(p => p.patientId === bedToDischarge.assignedPatientId);
+    if (patientToBill && !dischargedPatientsForBilling.find(p => p.patientId === patientToBill.patientId)) {
+        setDischargedPatientsForBilling(prev => [...prev, patientToBill]);
     }
 
     const bedRef = doc(firestore, 'beds', bedId);
@@ -242,22 +259,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const generateBillForPatient = (patientId: string, billDetails: Omit<Bill, 'id' | 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => {
+  const generateBillForPatient = async (patientId: string) => {
     const patient = dischargedPatientsForBilling.find(p => p.patientId === patientId);
     if (!patient) return;
 
+    // 1. Fetch all billable services for the patient
+    const billableServicesRef = collection(firestore, 'patients', patientId, 'billable_services');
+    const servicesSnapshot = await getDocs(billableServicesRef);
+    
+    let subtotal = 0;
+    const billItems: BillItem[] = [];
+
+    servicesSnapshot.forEach(doc => {
+        const service = doc.data();
+        const serviceInfo = BillableServices[service.serviceCode as keyof typeof BillableServices];
+        if (serviceInfo) {
+            const total = serviceInfo.unitPrice * service.quantity;
+            billItems.push({
+                name: serviceInfo.name,
+                unitPrice: serviceInfo.unitPrice,
+                qty: service.quantity,
+                total: total,
+            });
+            subtotal += total;
+        }
+    });
+
+    const insuranceAdjustment = -20000; // Mock adjustment
+    const totalDue = subtotal + insuranceAdjustment;
+
     const newBill: Bill = {
-        ...billDetails,
-        id: `INV-${patient.patientId.slice(4, 8)}-${Date.now()}`, // Assign a unique ID
+        id: `INV-${patient.patientId.slice(4, 8)}-${Date.now()}`,
         billId: `INV-${patient.patientId.slice(4, 8)}-${Date.now()}`,
+        patientId: patient.patientId,
         patientName: patient.name,
+        items: billItems,
+        subtotal,
+        insuranceAdjustment,
+        totalDue,
         status: 'Paid',
+        generatedBy: 'rec1',
         generatedAt: new Date().toISOString(),
-        generatedBy: 'rec1' // Hardcoded for demo
     }
 
     setBilledPatients(prev => [newBill, ...prev]);
     setDischargedPatientsForBilling(prev => prev.filter(p => p.patientId !== patientId));
+    
+    toast({
+        title: "Bill Finalized",
+        description: `The final bill for ${patient.name} has been generated.`,
+    });
   };
 
   const updateSettings = (newSettings: Partial<AppSettings>) => {

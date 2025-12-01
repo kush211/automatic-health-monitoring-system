@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -545,6 +546,47 @@
         "admissionDate",
         "status"
       ]
+    },
+    "BillableService": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BillableService",
+      "type": "object",
+      "description": "Represents a single billable service rendered to a patient.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the billable service record."
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to the Patient who received the service."
+        },
+        "serviceCode": {
+          "type": "string",
+          "description": "A code that maps to a predefined service (e.g., 'icu_stay', 'consult_fee')."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the service provided (e.g., number of days, number of consultations)."
+        },
+        "recordedBy": {
+          "type": "string",
+          "description": "The UID of the user who recorded the service."
+        },
+        "recordedAt": {
+          "type": "string",
+          "description": "Timestamp of when the service was recorded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "serviceCode",
+        "quantity",
+        "recordedBy",
+        "recordedAt"
+      ]
     }
   },
   "auth": {
@@ -603,6 +645,26 @@
             {
               "name": "recordId",
               "description": "The unique identifier for the patient record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/patients/{patientId}/billable_services/{serviceId}",
+        "definition": {
+          "entityName": "BillableService",
+          "schema": {
+            "$ref": "#/backend/entities/BillableService"
+          },
+          "description": "Stores individual billable services rendered to a patient. This collection is used to dynamically generate itemized bills.",
+          "params": [
+            {
+              "name": "patientId",
+              "description": "The unique identifier for the patient."
+            },
+            {
+              "name": "serviceId",
+              "description": "The unique identifier for the billable service record."
             }
           ]
         }
@@ -736,6 +798,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support a role-based healthcare application, HealthHub Rural, with a focus on patient record management, AI-powered risk analysis, appointment scheduling, billing, lab reports, and audit logging. The structure prioritizes authorization independence, clarity, and scalability. Authorization independence is achieved by avoiding hierarchical authorization dependencies. For example, roles and clinic IDs are stored directly within the user document, enabling easy rule creation without requiring `get()` calls to parent documents. Segregation is applied by using path-based ownership for user-owned data such as appointments and patient records, creating homogeneous security postures. Membership maps are not explicitly used in this design because access is controlled by user roles in combination with document ownership (e.g., a doctor can access patient records because they are the patient's primary doctor). The structure supports QAPs because it does not rely on rules as filters; read access is determined by explicit role-based checks on the user's authentication and, when relevant, ownership of data through the `primaryDoctorId` or similar fields. For collections like audit logs, access can be restricted based on user role, ensuring that only authorized personnel (e.g., admins) can list and view the logs."
+    "reasoning": "The Firestore data structure is designed to support a role-based healthcare application, HealthHub Rural, with a focus on patient record management, AI-powered risk analysis, appointment scheduling, billing, lab reports, and audit logging. The structure prioritizes authorization independence, clarity, and scalability. Authorization independence is achieved by avoiding hierarchical authorization dependencies. For example, roles and clinic IDs are stored directly within the user document, enabling easy rule creation without requiring `get()` calls to parent documents. Segregation is applied by using path-based ownership for user-owned data such as appointments and patient records, creating homogeneous security postures. Membership maps are not explicitly used in this design because access is controlled by user roles in combination with document ownership (e.g., a doctor can access patient records because they are the patient's primary doctor). The structure supports QAPs because it does not rely on rules as filters; read access is determined by explicit role-based checks on the user's authentication and, when relevant, ownership of data through the `primaryDoctorId` or similar fields. For collections like audit logs, access can be restricted based on user role, ensuring that only authorized personnel (e.g., admins) can list and view the logs. The addition of a `billable_services` sub-collection under patients allows for dynamic and itemized bill generation based on actual services rendered, enhancing the billing functionality."
   }
 }
