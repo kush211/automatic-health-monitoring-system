@@ -15,10 +15,12 @@ import type { GenerateDischargeSummaryOutput } from '@/ai/flows/generate-dischar
 import { generateDischargeSummary } from '@/ai/flows/generate-discharge-summary';
 import { useAppContext } from '@/hooks/use-app-context';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function BedsPage() {
   const { beds, addBed, assignPatientToBed, dischargePatientFromBed } = useAppContext();
   const { role } = useAuth();
+  const { toast } = useToast();
   const [isAddBedModalOpen, setIsAddBedModalOpen] = useState(false);
   const [isAssignPatientModalOpen, setIsAssignPatientModalOpen] = useState(false);
   const [selectedBed, setSelectedBed] = useState<Bed | null>(null);
@@ -72,8 +74,18 @@ export default function BedsPage() {
   };
 
   const handleConfirmDischarge = (bedId: string) => {
+    const bed = beds.find((b) => b.bedId === bedId);
+    const patientName = bed?.assignedPatientName;
+
     dischargePatientFromBed(bedId);
     handleCloseDischargeModal();
+
+    if (patientName) {
+      toast({
+        title: 'Patient Discharged',
+        description: `${patientName} has been discharged and sent to billing.`,
+      });
+    }
   };
   
   const handleCloseDischargeModal = () => {
