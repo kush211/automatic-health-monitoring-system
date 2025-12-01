@@ -4,7 +4,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
-import { initialPatients, doctors, appointments as initialAppointments, allUsers } from '@/lib/data';
+import { initialPatients, doctors, allUsers, appointments as initialAppointments } from '@/lib/data';
 import { useCollection, useUser, useMemoFirebase } from '@/firebase';
 import { collection, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
@@ -146,24 +146,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (patientsData) {
       setPatients(patientsData as Patient[]);
-    } else {
-        setPatients(initialPatients);
     }
   }, [patientsData]);
 
   useEffect(() => {
     if (appointmentsData) {
       setAppointments(appointmentsData as Appointment[]);
-    } else {
-        setAppointments(initialAppointments);
     }
   }, [appointmentsData]);
   
   useEffect(() => {
     if (bedsData) {
       setBeds(bedsData as Bed[]);
-    } else {
-        setBeds([]);
     }
   }, [bedsData]);
 
