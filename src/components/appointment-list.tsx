@@ -7,14 +7,21 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
-import { Clock, Video, Check, X, MoreHorizontal } from 'lucide-react';
+import { Clock, Video, Check, X, MoreHorizontal, ArrowRightLeft } from 'lucide-react';
 import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface AppointmentListProps {
   appointments: Appointment[];
+  onTransfer: (appointment: Appointment) => void;
 }
 
-export function AppointmentList({ appointments }: AppointmentListProps) {
+export function AppointmentList({ appointments, onTransfer }: AppointmentListProps) {
   if (appointments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -81,9 +88,24 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
                     </Button>
                 )}
                  {appointment.status === 'Scheduled' && (
-                     <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onTransfer(appointment)}>
+                                <ArrowRightLeft className="mr-2 h-4 w-4" />
+                                <span>Transfer</span>
+                            </DropdownMenuItem>
+                             <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                <X className="mr-2 h-4 w-4" />
+                                <span>Cancel</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                     </DropdownMenu>
                  )}
             </div>
           </CardContent>
@@ -93,3 +115,4 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
   );
 }
 
+    

@@ -9,6 +9,26 @@ export const demoUser: User = {
   avatarUrl: "https://picsum.photos/seed/doc1/100/100",
 };
 
+export const doctors: User[] = [
+  demoUser,
+  {
+    uid: 'doc2',
+    name: 'Dr. Vikram Reddy',
+    email: 'vikram.reddy@example.com',
+    role: 'Doctor',
+    clinicId: 'clinic123',
+    avatarUrl: 'https://picsum.photos/seed/doc2/100/100',
+  },
+  {
+    uid: 'doc3',
+    name: 'Dr. Sunita Desai',
+    email: 'sunita.desai@example.com',
+    role: 'Doctor',
+    clinicId: 'clinic123',
+    avatarUrl: 'https://picsum.photos/seed/doc3/100/100',
+  }
+];
+
 export const patients: Patient[] = [
   {
     patientId: "PID-1-2024",
@@ -89,7 +109,7 @@ export const appointments: Appointment[] = [
     patientName: "Aarav Sharma",
     patientAvatarUrl: "https://picsum.photos/seed/patient1/100/100",
     doctorId: "doc1",
-    doctorName: "Dr. Anjali Sharma",
+    doctorName: "Dr. Priya Sharma",
     dateTime: "2024-07-28T10:00:00Z",
     status: "Scheduled",
     createdBy: "receptionist1",
@@ -101,11 +121,35 @@ export const appointments: Appointment[] = [
     patientName: "Priya Singh",
     patientAvatarUrl: "https://picsum.photos/seed/patient2/100/100",
     doctorId: "doc1",
-    doctorName: "Dr. Anjali Sharma",
+    doctorName: "Dr. Priya Sharma",
     dateTime: "2024-07-28T11:00:00Z",
     status: "Scheduled",
     createdBy: "receptionist1",
     createdAt: "2024-07-20T11:00:00Z",
+  },
+   {
+    appointmentId: "APP-3",
+    patientId: "PID-3-2024",
+    patientName: "Rohan Mehta",
+    patientAvatarUrl: "https://picsum.photos/seed/patient3/100/100",
+    doctorId: "doc2",
+    doctorName: "Dr. Vikram Reddy",
+    dateTime: "2024-07-28T12:00:00Z",
+    status: "Completed",
+    createdBy: "receptionist1",
+    createdAt: "2024-07-20T12:00:00Z",
+  },
+  {
+    appointmentId: "APP-4",
+    patientId: "PID-4-2024",
+    patientName: "Sunita Gupta",
+    patientAvatarUrl: "https://picsum.photos/seed/patient4/100/100",
+    doctorId: "doc1",
+    doctorName: "Dr. Priya Sharma",
+    dateTime: "2024-07-28T14:00:00Z",
+    status: "Scheduled",
+    createdBy: "receptionist1",
+    createdAt: "2024-07-20T14:00:00Z",
   },
 ];
 
@@ -165,3 +209,5 @@ export const kpiData = {
     bedOccupancy: { value: "75%", change: "+5%" },
     commonDiagnosis: { value: "Hypertension", change: "" },
 }
+
+    
