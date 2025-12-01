@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -42,7 +43,7 @@ export function WalkInCheckInModal({
   const [selectedDoctor, setSelectedDoctor] = useState<User | null>(null);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
 
-  const handleCheckIn = async () => Kuldeep;
+  const handleCheckIn = async () => {
     if (!selectedPatient || !selectedDoctor) {
         toast({
             title: "Missing Information",
