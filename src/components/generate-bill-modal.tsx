@@ -25,7 +25,7 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import { FileText, Printer, CheckCircle, Stethoscope } from "lucide-react";
-import type { Patient } from '@/lib/types';
+import type { Patient, Bill, BillItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { BillableServices } from '@/lib/services';
 
@@ -33,11 +33,11 @@ interface GenerateBillModalProps {
   isOpen: boolean;
   onClose: () => void;
   patient: Patient;
-  onBillGenerated: (patientId: string) => void;
+  onBillGenerated: (patientId: string, billDetails: Omit<Bill, 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
 }
 
 // Mock function to get charges for a patient
-const getPatientCharges = (patient: Patient) => {
+const getPatientCharges = (patient: Patient): { billItems: BillItem[], subtotal: number, insuranceAdjustment: number, totalDue: number } => {
     // In a real app, this would come from a database of services rendered.
     // For now, we'll create a sample charge sheet based on the mock data.
     const items = [
@@ -50,7 +50,8 @@ const getPatientCharges = (patient: Patient) => {
     ];
     
     const billItems = items.map(item => ({
-        ...item.service,
+        name: item.service.name,
+        unitPrice: item.service.unitPrice,
         qty: item.qty,
         total: item.service.unitPrice * item.qty,
     }));
@@ -96,7 +97,14 @@ export function GenerateBillModal({
   };
 
   const handleFinalizeBill = () => {
-    onBillGenerated(patient.patientId);
+    const billDetails = {
+        patientId: patient.patientId,
+        items: billItems,
+        subtotal,
+        insuranceAdjustment,
+        totalDue,
+    };
+    onBillGenerated(patient.patientId, billDetails);
     toast({
         title: "Bill Finalized",
         description: `The final bill for ${patient.name} has been generated.`,

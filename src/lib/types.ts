@@ -49,15 +49,18 @@ export type Bed = {
   assignedAt?: string;
 };
 
+export type BillItem = {
+  name: string;
+  unitPrice: number;
+  qty: number;
+  total: number;
+}
+
 export type Bill = {
   billId: string;
   patientId: string;
-  items: {
-    service: string;
-    qty: number;
-    unitPrice: number;
-    total: number;
-  }[];
+  patientName: string;
+  items: BillItem[];
   subtotal: number;
   insuranceAdjustment: number;
   totalDue: number;

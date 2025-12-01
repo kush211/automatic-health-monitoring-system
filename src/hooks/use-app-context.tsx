@@ -2,8 +2,9 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import type { Appointment, Bed, Patient, User } from '@/lib/types';
+import type { Appointment, Bed, Bill, Patient, User } from '@/lib/types';
 import { appointments as initialAppointments, patients as allPatients } from '@/lib/data';
+import { BillableServices } from '@/lib/services';
 
 const initialBeds: Bed[] = [
   {
@@ -38,18 +39,19 @@ interface AppContextType {
   appointments: Appointment[];
   beds: Bed[];
   dischargedPatientsForBilling: Patient[];
+  billedPatients: Bill[];
   transferAppointment: (appointmentId: string, newDoctor: User) => void;
   updateAppointmentStatus: (appointmentId: string, status: Appointment['status']) => void;
   addAppointment: (payload: NewAppointmentPayload) => void;
   addBed: (ward: 'General' | 'ICU' | 'Maternity') => void;
   assignPatientToBed: (bedId: string, patient: Patient) => void;
   dischargePatientFromBed: (bedId: string) => void;
-  generateBillForPatient: (patientId: string) => void;
+  generateBillForPatient: (patientId: string, billDetails: Omit<Bill, 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const getInitialState = <T>(key: string, fallback: T): T => {
+const getInitialState = <T,>(key: string, fallback: T): T => {
     if (typeof window === 'undefined') {
         return fallback;
     }
@@ -66,6 +68,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [appointments, setAppointments] = useState<Appointment[]>(() => getInitialState('appointments', initialAppointments));
   const [beds, setBeds] = useState<Bed[]>(() => getInitialState('beds', initialBeds));
   const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>(() => getInitialState('dischargedPatients', []));
+  const [billedPatients, setBilledPatients] = useState<Bill[]>(() => getInitialState('billedPatients', []));
 
   useEffect(() => {
     try {
@@ -90,6 +93,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.error("Failed to save discharged patients to localStorage:", error);
     }
   }, [dischargedPatientsForBilling]);
+
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('billedPatients', JSON.stringify(billedPatients));
+    } catch (error) {
+        console.error("Failed to save billed patients to localStorage:", error);
+    }
+  }, [billedPatients]);
 
 
   const transferAppointment = (appointmentId: string, newDoctor: User) => {
@@ -178,7 +189,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const generateBillForPatient = (patientId: string) => {
+  const generateBillForPatient = (patientId: string, billDetails: Omit<Bill, 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => {
+    const patient = dischargedPatientsForBilling.find(p => p.patientId === patientId);
+    if (!patient) return;
+
+    const newBill: Bill = {
+        ...billDetails,
+        billId: `INV-${patient.patientId.slice(4, 8)}-${new Date().getFullYear()}`,
+        patientName: patient.name,
+        status: 'Paid',
+        generatedAt: new Date().toISOString(),
+        generatedBy: 'rec1' // Hardcoded for demo
+    }
+
+    setBilledPatients(prev => [newBill, ...prev]);
     setDischargedPatientsForBilling(prev => prev.filter(p => p.patientId !== patientId));
   }
 
@@ -187,6 +211,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     appointments,
     beds,
     dischargedPatientsForBilling,
+    billedPatients,
     transferAppointment,
     updateAppointmentStatus,
     addAppointment,

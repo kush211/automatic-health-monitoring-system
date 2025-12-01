@@ -1,6 +1,7 @@
 
 'use client';
 import * as React from "react";
+import Link from "next/link";
 import {
   ColumnDef,
   flexRender,
@@ -20,6 +21,7 @@ import { useAppContext } from "@/hooks/use-app-context";
 import type { Patient } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GenerateBillModal } from "@/components/generate-bill-modal";
+import { History } from "lucide-react";
 
 export default function BillingPage() {
   const { dischargedPatientsForBilling, generateBillForPatient } = useAppContext();
@@ -36,8 +38,8 @@ export default function BillingPage() {
     setSelectedPatient(null);
   };
   
-  const handleBillGenerated = (patientId: string) => {
-    generateBillForPatient(patientId);
+  const handleBillGenerated = (patientId: string, billDetails: any) => {
+    generateBillForPatient(patientId, billDetails);
     handleCloseBillModal();
   };
 
@@ -82,11 +84,19 @@ export default function BillingPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Patient Billing</h1>
-        <p className="text-muted-foreground">
-          Generate final bills for discharged patients.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+            <h1 className="text-3xl font-bold tracking-tight">Patient Billing</h1>
+            <p className="text-muted-foreground">
+            Generate final bills for discharged patients.
+            </p>
+        </div>
+        <Button asChild variant="outline">
+            <Link href="/billing/history">
+                <History className="mr-2 h-4 w-4" />
+                View Billing History
+            </Link>
+        </Button>
       </div>
 
       <div className="rounded-md border">
