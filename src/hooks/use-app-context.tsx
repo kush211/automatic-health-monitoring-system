@@ -1,12 +1,13 @@
 
 'use client';
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
-import { initialPatients, doctors, appointments as initialAppointments } from '@/lib/data';
+import { initialPatients, doctors, appointments as initialAppointments, allUsers, kpiData, recentActivities } from '@/lib/data';
 import { useCollection, useUser, useMemoFirebase } from '@/firebase';
-import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
+import { useToast } from './use-toast';
 
 interface NewAppointmentPayload {
     patient: Patient;
@@ -46,6 +47,9 @@ interface AppContextType {
   generateBillForPatient: (patientId: string, billDetails: Omit<Bill, 'id' | 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   clearAllData: () => void;
+  DataSeeder: () => void;
+  isSeeding: boolean;
+  isSeedingComplete: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -63,49 +67,102 @@ const getInitialState = <T,>(key: string, fallback: T): T => {
     }
 }
 
+const useDataSeeder = () => {
+    const { firestore } = useFirebase();
+    const { toast } = useToast();
+    const [isSeeding, setIsSeeding] = useState(false);
+    const [isSeedingComplete, setIsSeedingComplete] = useState(false);
+
+    const seedDatabase = useCallback(async () => {
+        if (isSeeding || isSeedingComplete) return;
+
+        setIsSeeding(true);
+        toast({ title: "Database Seeding Started", description: "Populating Firestore with initial data..." });
+
+        try {
+            const batch = writeBatch(firestore);
+
+            // Seed Patients
+            const patientsCollection = collection(firestore, 'patients');
+            initialPatients.forEach(patient => {
+                const docRef = doc(patientsCollection);
+                batch.set(docRef, patient);
+            });
+
+            // Seed Appointments
+            const appointmentsCollection = collection(firestore, 'appointments');
+            initialAppointments.forEach(appointment => {
+                const docRef = doc(appointmentsCollection);
+                batch.set(docRef, appointment);
+            });
+
+            // Seed Users
+            const usersCollection = collection(firestore, 'users');
+            allUsers.forEach(user => {
+                const docRef = doc(usersCollection, user.uid); // Use UID as doc ID
+                batch.set(docRef, user);
+            });
+            
+            // Seed Beds (Create some initial beds)
+            const bedsCollection = collection(firestore, 'beds');
+            const wards = ['General', 'ICU', 'Maternity'];
+            let bedCounter = 1;
+            wards.forEach(ward => {
+                for(let i=0; i< (ward === 'ICU' ? 5 : 10); i++) {
+                    const bedId = `${ward.charAt(0)}-${100+bedCounter++}`;
+                    const docRef = doc(bedsCollection);
+                    batch.set(docRef, { bedId, ward, status: 'Available' });
+                }
+            });
+
+
+            await batch.commit();
+
+            toast({ title: "Database Seeding Successful", description: "Firestore has been populated." });
+            setIsSeedingComplete(true);
+        } catch (error) {
+            console.error("Error seeding database:", error);
+            toast({ title: "Seeding Failed", description: "Could not write initial data to Firestore. Check console and security rules.", variant: 'destructive' });
+        } finally {
+            setIsSeeding(false);
+        }
+    }, [firestore, isSeeding, isSeedingComplete, toast]);
+
+    return { DataSeeder: seedDatabase, isSeeding, isSeedingComplete };
+};
+
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const { firestore } = useFirebase();
   const { user: authUser, isUserLoading } = useUser();
+  const { DataSeeder, isSeeding, isSeedingComplete } = useDataSeeder();
 
   // Conditionally create refs only when user is logged in
   const patientsRef = useMemoFirebase(() => authUser ? collection(firestore, 'patients') : null, [firestore, authUser]);
-  const { data: patientsData } = useCollection<Patient>(patientsRef);
+  const { data: patientsData, isLoading: isPatientsLoading } = useCollection<Patient>(patientsRef);
 
   const appointmentsRef = useMemoFirebase(() => authUser ? collection(firestore, 'appointments') : null, [firestore, authUser]);
-  const { data: appointmentsData } = useCollection<Appointment>(appointmentsRef);
+  const { data: appointmentsData, isLoading: isAppointmentsLoading } = useCollection<Appointment>(appointmentsRef);
   
   const bedsRef = useMemoFirebase(() => authUser ? collection(firestore, 'beds') : null, [firestore, authUser]);
-  const { data: bedsData } = useCollection<Bed>(bedsRef);
+  const { data: bedsData, isLoading: isBedsLoading } = useCollection<Bed>(bedsRef);
 
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [patients, setPatients] = useState<Patient[]>(initialPatients);
+  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
   const [beds, setBeds] = useState<Bed[]>([]);
 
-  useEffect(() => {
-    if (patientsData) {
-      setPatients(patientsData);
-    } else if (!isUserLoading) {
-      // Fallback to initial data if not loading and no data from firestore
-      setPatients(initialPatients);
-    }
-  }, [patientsData, isUserLoading]);
 
   useEffect(() => {
-    if (appointmentsData) {
-      setAppointments(appointmentsData);
-    } else if (!isUserLoading) {
-      setAppointments(initialAppointments);
-    }
-  }, [appointmentsData, isUserLoading]);
+    if (patientsData) setPatients(patientsData);
+  }, [patientsData]);
+
+  useEffect(() => {
+    if (appointmentsData) setAppointments(appointmentsData);
+  }, [appointmentsData]);
   
   useEffect(() => {
-    if (bedsData) {
-      setBeds(bedsData);
-    } else if (!isUserLoading) {
-      // Since initialBeds was removed, we just initialize with empty array if no data
-      setBeds([]);
-    }
-  }, [bedsData, isUserLoading]);
+    if (bedsData) setBeds(bedsData);
+  }, [bedsData]);
 
 
   const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>(() => getInitialState('dischargedPatients', []));
@@ -169,6 +226,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
     const newPatientData = {
         ...payload,
+        id: newPatientId, // Use the same ID for firestore doc
         patientId: newPatientId,
         primaryDoctorName: primaryDoctor?.name || 'Unassigned',
         avatarUrl: `https://picsum.photos/seed/${newPatientId}/100/100`,
@@ -228,10 +286,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const patient = dischargedPatientsForBilling.find(p => p.patientId === patientId);
     if (!patient) return;
 
-    const newBill: Bill = {
+    const newBill: any = {
         ...billDetails,
-        id: `BILL-${Date.now()}`,
-        billId: `INV-${patient.patientId.slice(4, 8)}-${new Date().getFullYear()}`,
         patientName: patient.name,
         status: 'Paid',
         generatedAt: new Date().toISOString(),
@@ -240,7 +296,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     setBilledPatients(prev => [newBill, ...prev]);
     setDischargedPatientsForBilling(prev => prev.filter(p => p.patientId !== patientId));
-  }
+  };
 
   const updateSettings = (newSettings: Partial<AppSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
@@ -278,6 +334,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     generateBillForPatient,
     updateSettings,
     clearAllData,
+    DataSeeder,
+    isSeeding,
+    isSeedingComplete,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
