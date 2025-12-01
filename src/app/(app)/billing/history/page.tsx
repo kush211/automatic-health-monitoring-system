@@ -20,14 +20,22 @@ import {
 } from "@/components/ui/table";
 import { useAppContext } from "@/hooks/use-app-context";
 import type { Bill } from "@/lib/types";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Printer } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { ViewBillModal } from "@/components/view-bill-modal";
 
 export default function BillingHistoryPage() {
   const { billedPatients } = useAppContext();
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [isViewBillModalOpen, setIsViewBillModalOpen] = React.useState(false);
+  const [selectedBill, setSelectedBill] = React.useState<Bill | null>(null);
+
+  const handleOpenViewBillModal = (bill: Bill) => {
+    setSelectedBill(bill);
+    setIsViewBillModalOpen(true);
+  };
   
   const columns: ColumnDef<Bill>[] = [
     {
@@ -74,6 +82,20 @@ export default function BillingHistoryPage() {
         cell: ({ row }) => {
             return <Badge className="bg-green-500/20 text-green-700 hover:bg-green-500/30">{row.original.status}</Badge>
         }
+    },
+    {
+        id: "actions",
+        header: () => <div className="text-right">Actions</div>,
+        cell: ({ row }) => {
+            return (
+                <div className="text-right">
+                    <Button variant="outline" size="sm" onClick={() => handleOpenViewBillModal(row.original)}>
+                        <Printer className="mr-2 h-4 w-4" />
+                        Print
+                    </Button>
+                </div>
+            )
+        }
     }
   ];
   
@@ -89,6 +111,7 @@ export default function BillingHistoryPage() {
   });
 
   return (
+    <>
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Billing History</h1>
@@ -153,5 +176,13 @@ export default function BillingHistoryPage() {
           </Button>
       </div>
     </div>
+    {selectedBill && (
+        <ViewBillModal 
+            isOpen={isViewBillModalOpen}
+            onClose={() => setIsViewBillModalOpen(false)}
+            bill={selectedBill}
+        />
+    )}
+    </>
   );
 }
