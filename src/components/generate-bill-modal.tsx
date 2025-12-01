@@ -2,8 +2,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { useReactToPrint } from 'react-to-print';
 import {
   Dialog,
   DialogContent,
@@ -54,6 +53,10 @@ export function GenerateBillModal({
   const [isLoading, setIsLoading] = useState(true);
   const [insuranceAdjustment, setInsuranceAdjustment] = useState(-20000); 
 
+  const handlePrint = useReactToPrint({
+    content: () => billRef.current,
+  });
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -101,33 +104,12 @@ export function GenerateBillModal({
     };
 
     fetchBillableServices();
-  }, [isOpen, patient]);
+  }, [isOpen, patient, insuranceAdjustment]);
 
   useEffect(() => {
     setTotalDue(subtotal + insuranceAdjustment);
   }, [subtotal, insuranceAdjustment]);
 
-
-  const handlePrint = () => {
-    if (billRef.current) {
-      html2canvas(billRef.current, { scale: 2 }).then((canvas) => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        
-        const ratio = canvasHeight / canvasWidth;
-        const imgHeight = pdfWidth * ratio;
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
-        pdf.autoPrint();
-        pdf.output('dataurlnewwindow');
-      });
-    }
-  };
 
   const handleFinalizeBill = () => {
     onBillGenerated(patient.patientId, { subtotal, insuranceAdjustment, totalDue, items: billItems });
