@@ -7,25 +7,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { demoUser, nurseUser } from "@/lib/data";
+import { demoUser, nurseUser, receptionistUser } from "@/lib/data";
+import type { UserRole } from "@/lib/types";
 
 export function LoginForm() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("doctor");
+  const [activeTab, setActiveTab] = useState<UserRole>("Doctor");
 
   const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // In a real app, you'd verify credentials. Here, we just set the role.
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('userRole', activeTab);
+    }
     router.push('/dashboard');
   };
 
   return (
-    <Tabs defaultValue="doctor" className="w-full" onValueChange={setActiveTab}>
+    <Tabs defaultValue="doctor" className="w-full" onValueChange={(value) => setActiveTab(value as UserRole)}>
       <TabsList className="grid w-full grid-cols-3 bg-muted mb-4 p-1 h-auto">
-        <TabsTrigger value="doctor">Doctor</TabsTrigger>
-        <TabsTrigger value="nurse">Nurse</TabsTrigger>
-        <TabsTrigger value="receptionist">Receptionist</TabsTrigger>
+        <TabsTrigger value="Doctor">Doctor</TabsTrigger>
+        <TabsTrigger value="Nurse">Nurse</TabsTrigger>
+        <TabsTrigger value="Receptionist">Receptionist</TabsTrigger>
       </TabsList>
-      <TabsContent value="doctor">
+      <TabsContent value="Doctor">
         <div className="text-center mb-4">
           <h2 className="text-2xl font-bold text-foreground">Doctor Access</h2>
           <p className="text-sm text-muted-foreground">
@@ -59,7 +64,7 @@ export function LoginForm() {
           </Button>
         </form>
       </TabsContent>
-      <TabsContent value="nurse">
+      <TabsContent value="Nurse">
          <div className="text-center mb-4">
           <h2 className="text-2xl font-bold text-foreground">Nurse Access</h2>
           <p className="text-sm text-muted-foreground">
@@ -93,7 +98,7 @@ export function LoginForm() {
           </Button>
         </form>
       </TabsContent>
-      <TabsContent value="receptionist">
+      <TabsContent value="Receptionist">
         <div className="text-center mb-4">
           <h2 className="text-2xl font-bold text-foreground">Receptionist Access</h2>
           <p className="text-sm text-muted-foreground">
@@ -108,7 +113,7 @@ export function LoginForm() {
               type="email"
               placeholder="receptionist@example.com"
               required
-              defaultValue="receptionist@example.com"
+              defaultValue={receptionistUser.email}
               className="bg-input border-0"
             />
           </div>
