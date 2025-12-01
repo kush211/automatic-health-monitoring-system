@@ -4,7 +4,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
-import { initialPatients, doctors, allUsers, appointments as initialAppointments } from '@/lib/data';
+import { initialPatients, doctors, appointments as initialAppointments } from '@/lib/data';
 import { useCollection, useUser, useMemoFirebase } from '@/firebase';
 import { collection, doc, updateDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
