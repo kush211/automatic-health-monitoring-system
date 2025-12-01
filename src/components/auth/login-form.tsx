@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { nurseUser } from "@/lib/data";
 
 export function LoginForm() {
   const router = useRouter();
@@ -72,7 +74,7 @@ export function LoginForm() {
               type="email"
               placeholder="nurse@example.com"
               required
-              defaultValue="nurse@example.com"
+              defaultValue={nurseUser.email}
               className="bg-input border-0"
             />
           </div>

@@ -1,3 +1,4 @@
+
 import { Patient, User, Appointment, RecentActivity, MonthlyVisit } from "./types";
 
 export const demoUser: User = {
@@ -9,25 +10,38 @@ export const demoUser: User = {
   avatarUrl: "https://picsum.photos/seed/doc1/100/100",
 };
 
-export const doctors: User[] = [
-  demoUser,
-  {
-    uid: 'doc2',
-    name: 'Dr. Vikram Reddy',
-    email: 'vikram.reddy@example.com',
-    role: 'Doctor',
+export const nurseUser: User = {
+    uid: 'nurse1',
+    name: 'Sameer Kumar',
+    email: 'sameer.kumar@example.com',
+    role: 'Nurse',
     clinicId: 'clinic123',
-    avatarUrl: 'https://picsum.photos/seed/doc2/100/100',
-  },
-  {
-    uid: 'doc3',
-    name: 'Dr. Sunita Desai',
-    email: 'sunita.desai@example.com',
-    role: 'Doctor',
-    clinicId: 'clinic123',
-    avatarUrl: 'https://picsum.photos/seed/doc3/100/100',
-  }
+    avatarUrl: 'https://picsum.photos/seed/nurse1/100/100',
+};
+
+export const allUsers: User[] = [
+    demoUser,
+    {
+      uid: 'doc2',
+      name: 'Dr. Vikram Reddy',
+      email: 'vikram.reddy@example.com',
+      role: 'Doctor',
+      clinicId: 'clinic123',
+      avatarUrl: 'https://picsum.photos/seed/doc2/100/100',
+    },
+    {
+      uid: 'doc3',
+      name: 'Dr. Sunita Desai',
+      email: 'sunita.desai@example.com',
+      role: 'Doctor',
+      clinicId: 'clinic123',
+      avatarUrl: 'https://picsum.photos/seed/doc3/100/100',
+    },
+    nurseUser,
 ];
+
+
+export const doctors: User[] = allUsers.filter(u => u.role === 'Doctor');
 
 export const patients: Patient[] = [
   {
