@@ -105,6 +105,28 @@ const sunitaGuptaMedicalHistory = [
     },
 ];
 
+const priyaSinghMedicalHistory = [
+    {
+      date: '12/04/2024',
+      diagnosis: 'Common Cold',
+      doctor: 'Dr. Priya Sharma',
+      prescription: true,
+      prescriptionDetails: 'Advised rest, hydration, and Paracetamol if needed.',
+      labReports: 0,
+      notes: 'Patient presented with symptoms of a common cold. No signs of secondary infection.',
+    },
+    {
+      date: '25/02/2024',
+      diagnosis: 'Minor Skin Rash',
+      doctor: 'Dr. Vikram Reddy',
+      prescription: true,
+      prescriptionDetails: 'Hydrocortisone cream 1% to be applied twice daily.',
+      labReports: 0,
+      notes: 'Localized rash on the forearm, likely contact dermatitis.',
+    },
+];
+
+
 const initialLabReports = [
   {
     date: '2024-06-10',
@@ -157,6 +179,9 @@ export default function PatientDetailPage() {
         setLabReports(initialLabReports);
       } else if (patient.patientId === 'PID-4-2024') {
         setMedicalHistory(sunitaGuptaMedicalHistory);
+        setLabReports([]);
+      } else if (patient.patientId === 'PID-2-2024') {
+        setMedicalHistory(priyaSinghMedicalHistory);
         setLabReports([]);
       } else {
         setMedicalHistory([]);
