@@ -12,6 +12,7 @@ export type User = {
 };
 
 export type Patient = {
+  id: string;
   patientId: string;
   name: string;
   dob: string;
@@ -28,6 +29,7 @@ export type Patient = {
 };
 
 export type Appointment = {
+  id: string;
   appointmentId: string;
   patientId: string;
   patientName: string;
@@ -41,6 +43,7 @@ export type Appointment = {
 };
 
 export type Bed = {
+  id: string;
   bedId: string;
   ward: "General" | "ICU" | "Maternity";
   status: "Available" | "Occupied";

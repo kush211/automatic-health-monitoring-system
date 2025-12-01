@@ -37,7 +37,7 @@ export default function BedsPage() {
 
   const handleAssignPatient = (patient: Patient) => {
     if (selectedBed) {
-      assignPatientToBed(selectedBed.bedId, patient);
+      assignPatientToBed(selectedBed.id, patient);
       setIsAssignPatientModalOpen(false);
       setSelectedBed(null);
     }
@@ -73,7 +73,7 @@ export default function BedsPage() {
   };
 
   const handleConfirmDischarge = (bedId: string) => {
-    const bed = beds.find((b) => b.bedId === bedId);
+    const bed = beds.find((b) => b.id === bedId);
     const patientName = bed?.assignedPatientName;
 
     dischargePatientFromBed(bedId);
@@ -129,7 +129,7 @@ export default function BedsPage() {
                 .map((bed) =>
                   bed.status === 'Occupied' ? (
                     <Card
-                      key={bed.bedId}
+                      key={bed.id}
                       className="bg-red-500/10 border-red-500/30"
                     >
                       <CardContent className="p-6 flex flex-col items-center justify-center gap-4 text-center">
@@ -167,7 +167,7 @@ export default function BedsPage() {
                     </Card>
                   ) : (
                     <Card
-                      key={bed.bedId}
+                      key={bed.id}
                       className="bg-green-500/10 border-green-500/30"
                     >
                       <CardContent className="p-6 flex flex-col items-center justify-center gap-4 text-center h-full">
@@ -218,7 +218,7 @@ export default function BedsPage() {
           onClose={handleCloseDischargeModal}
           summary={dischargeSummary}
           isLoading={isSummaryLoading}
-          onConfirmDischarge={() => handleConfirmDischarge(bedToDischarge.bedId)}
+          onConfirmDischarge={() => handleConfirmDischarge(bedToDischarge.id)}
         />
       )}
     </div>

@@ -1,36 +1,12 @@
 
-"use client";
+
+'use client';
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Appointment, Bed, Bill, Patient, User, AppSettings } from '@/lib/types';
-import { appointments as initialAppointments, initialPatients, doctors } from '@/lib/data';
-
-const initialBeds: Bed[] = [
-  {
-    bedId: 'Bed 101',
-    ward: 'General',
-    status: 'Occupied',
-    assignedPatientId: 'PID-1-2024',
-    assignedPatientName: 'Aarav Sharma',
-    assignedPatientAvatarUrl: 'https://picsum.photos/seed/patient1/100/100',
-    assignedAt: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
-  },
-  {
-    bedId: 'Bed 102',
-    ward: 'General',
-    status: 'Available',
-  },
-  {
-    bedId: 'Bed 401',
-    ward: 'ICU',
-    status: 'Available',
-  },
-];
-
-const initialSettings: AppSettings = {
-    aiRiskAnalysisEnabled: true,
-    aiPatientSummaryEnabled: true,
-};
+import { appointments as initialAppointments, initialPatients, doctors, initialBeds } from '@/lib/data';
+import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
+import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 
 interface NewAppointmentPayload {
     patient: Patient;
@@ -48,6 +24,11 @@ interface NewPatientPayload {
     primaryDoctorId: string;
 }
 
+const initialSettings: AppSettings = {
+    aiRiskAnalysisEnabled: true,
+    aiPatientSummaryEnabled: true,
+};
+
 interface AppContextType {
   appointments: Appointment[];
   beds: Bed[];
@@ -62,7 +43,7 @@ interface AppContextType {
   addBed: (ward: 'General' | 'ICU' | 'Maternity') => void;
   assignPatientToBed: (bedId: string, patient: Patient) => void;
   dischargePatientFromBed: (bedId: string) => void;
-  generateBillForPatient: (patientId: string, billDetails: Omit<Bill, 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
+  generateBillForPatient: (patientId: string, billDetails: Omit<Bill, 'id' | 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => void;
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   clearAllData: () => void;
 }
@@ -83,36 +64,20 @@ const getInitialState = <T,>(key: string, fallback: T): T => {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [appointments, setAppointments] = useState<Appointment[]>(() => getInitialState('appointments', initialAppointments));
-  const [beds, setBeds] = useState<Bed[]>(() => getInitialState('beds', initialBeds));
-  const [patients, setPatients] = useState<Patient[]>(() => getInitialState('patients', initialPatients));
+  const { firestore } = useFirebase();
+
+  const patientsRef = useMemoFirebase(() => collection(firestore, 'patients'), [firestore]);
+  const { data: patients = [] } = useCollection<Patient>(patientsRef);
+
+  const appointmentsRef = useMemoFirebase(() => collection(firestore, 'appointments'), [firestore]);
+  const { data: appointments = [] } = useCollection<Appointment>(appointmentsRef);
+  
+  const bedsRef = useMemoFirebase(() => collection(firestore, 'beds'), [firestore]);
+  const { data: beds = [] } = useCollection<Bed>(bedsRef);
+
   const [dischargedPatientsForBilling, setDischargedPatientsForBilling] = useState<Patient[]>(() => getInitialState('dischargedPatients', []));
   const [billedPatients, setBilledPatients] = useState<Bill[]>(() => getInitialState('billedPatients', []));
   const [settings, setSettings] = useState<AppSettings>(() => getInitialState('appSettings', initialSettings));
-
-  useEffect(() => {
-    try {
-        window.localStorage.setItem('appointments', JSON.stringify(appointments));
-    } catch (error) {
-        console.error("Failed to save appointments to localStorage:", error);
-    }
-  }, [appointments]);
-  
-  useEffect(() => {
-    try {
-        window.localStorage.setItem('beds', JSON.stringify(beds));
-    } catch (error) {
-        console.error("Failed to save beds to localStorage:", error);
-    }
-  }, [beds]);
-
-  useEffect(() => {
-    try {
-        window.localStorage.setItem('patients', JSON.stringify(patients));
-    } catch (error) {
-        console.error("Failed to save patients to localStorage:", error);
-    }
-  }, [patients]);
 
   useEffect(() => {
     try {
@@ -138,28 +103,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [settings]);
 
-
-  const transferAppointment = (appointmentId: string, newDoctor: User) => {
-    setAppointments(prev =>
-      prev.map(app =>
-        app.appointmentId === appointmentId
-          ? { ...app, doctorId: newDoctor.uid, doctorName: newDoctor.name }
-          : app
-      )
-    );
+  const transferAppointment = async (appointmentId: string, newDoctor: User) => {
+    const appointmentRef = doc(firestore, 'appointments', appointmentId);
+    await updateDoc(appointmentRef, {
+        doctorId: newDoctor.uid,
+        doctorName: newDoctor.name,
+    });
   };
 
-  const updateAppointmentStatus = (appointmentId: string, status: Appointment['status']) => {
-    setAppointments(prev =>
-        prev.map(app =>
-            app.appointmentId === appointmentId ? { ...app, status } : app
-        )
-    );
+  const updateAppointmentStatus = async (appointmentId: string, status: Appointment['status']) => {
+    const appointmentRef = doc(firestore, 'appointments', appointmentId);
+    await updateDoc(appointmentRef, { status });
   };
   
-  const addAppointment = ({ patient, doctor, dateTime, status = 'Scheduled' }: NewAppointmentPayload) => {
-    const newAppointment: Appointment = {
-        appointmentId: `APP-${Date.now()}`,
+  const addAppointment = async ({ patient, doctor, dateTime, status = 'Scheduled' }: NewAppointmentPayload) => {
+    const newAppointment: Omit<Appointment, 'id'> = {
         patientId: patient.patientId,
         patientName: patient.name,
         patientAvatarUrl: patient.avatarUrl,
@@ -170,13 +128,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdBy: 'rec1', // Hardcoded for demo
         createdAt: new Date().toISOString(),
     };
-    setAppointments(prev => [...prev, newAppointment]);
+    const appointmentsCollection = collection(firestore, 'appointments');
+    await addDoc(appointmentsCollection, newAppointment);
   };
   
-  const addPatient = (payload: NewPatientPayload) => {
+  const addPatient = async (payload: NewPatientPayload) => {
     const newPatientId = `PID-${patients.length + 1}-${new Date().getFullYear()}`;
     const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
-    const newPatient: Patient = {
+    const newPatient: Omit<Patient, 'id'> = {
         ...payload,
         patientId: newPatientId,
         primaryDoctorName: primaryDoctor?.name || 'Unassigned',
@@ -185,38 +144,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };
-    setPatients(prev => [...prev, newPatient]);
+
+    const patientsCollection = collection(firestore, 'patients');
+    await addDoc(patientsCollection, newPatient);
   };
 
-  const addBed = (ward: 'General' | 'ICU' | 'Maternity') => {
+  const addBed = async (ward: 'General' | 'ICU' | 'Maternity') => {
     const newBedId = `Bed ${Math.floor(Math.random() * 900) + 100}`;
-    const newBed: Bed = {
+    const newBed: Omit<Bed, 'id'> = {
       bedId: newBedId,
       ward: ward,
       status: 'Available',
     };
-    setBeds(prev => [...prev, newBed]);
+    const bedsCollection = collection(firestore, 'beds');
+    await addDoc(bedsCollection, newBed);
   };
 
-  const assignPatientToBed = (bedId: string, patient: Patient) => {
-    setBeds(prev =>
-      prev.map(b =>
-        b.bedId === bedId
-          ? {
-              ...b,
-              status: 'Occupied',
-              assignedPatientId: patient.patientId,
-              assignedPatientName: patient.name,
-              assignedPatientAvatarUrl: patient.avatarUrl,
-              assignedAt: new Date().toISOString(),
-            }
-          : b
-      )
-    );
+  const assignPatientToBed = async (bedId: string, patient: Patient) => {
+    const bed = beds.find(b => b.id === bedId);
+    if (!bed) return;
+    const bedRef = doc(firestore, 'beds', bed.id);
+    await updateDoc(bedRef, {
+        status: 'Occupied',
+        assignedPatientId: patient.patientId,
+        assignedPatientName: patient.name,
+        assignedPatientAvatarUrl: patient.avatarUrl,
+        assignedAt: new Date().toISOString(),
+    });
   };
 
   const dischargePatientFromBed = (bedId: string) => {
-    const bedToDischarge = beds.find(b => b.bedId === bedId);
+    const bedToDischarge = beds.find(b => b.id === bedId);
     if (bedToDischarge && bedToDischarge.assignedPatientId) {
         const patientToBill = patients.find(p => p.patientId === bedToDischarge.assignedPatientId);
         if (patientToBill && !dischargedPatientsForBilling.find(p => p.patientId === patientToBill.patientId)) {
@@ -224,28 +182,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    setBeds(prev =>
-      prev.map(b =>
-        b.bedId === bedId
-          ? {
-              ...b,
-              status: 'Available',
-              assignedPatientId: undefined,
-              assignedPatientName: undefined,
-              assignedPatientAvatarUrl: undefined,
-              assignedAt: undefined,
-            }
-          : b
-      )
-    );
+    const bedRef = doc(firestore, 'beds', bedId);
+    updateDoc(bedRef, {
+        status: 'Available',
+        assignedPatientId: null,
+        assignedPatientName: null,
+        assignedPatientAvatarUrl: null,
+        assignedAt: null,
+    });
   };
 
-  const generateBillForPatient = (patientId: string, billDetails: Omit<Bill, 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => {
+  const generateBillForPatient = (patientId: string, billDetails: Omit<Bill, 'id' | 'billId' | 'status' | 'generatedAt' | 'generatedBy'>) => {
     const patient = dischargedPatientsForBilling.find(p => p.patientId === patientId);
     if (!patient) return;
 
     const newBill: Bill = {
         ...billDetails,
+        id: `BILL-${Date.now()}`,
         billId: `INV-${patient.patientId.slice(4, 8)}-${new Date().getFullYear()}`,
         patientName: patient.name,
         status: 'Paid',
@@ -262,18 +215,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
   
   const clearAllData = () => {
-    window.localStorage.removeItem('appointments');
-    window.localStorage.removeItem('beds');
-    window.localStorage.removeItem('patients');
+    // This is a dangerous operation. In a real app, this would be heavily protected.
+    // For the demo, we will clear collections.
+    console.log("Clearing data is not fully implemented for Firestore yet. It will only clear local state.");
     window.localStorage.removeItem('dischargedPatients');
     window.localStorage.removeItem('billedPatients');
     window.localStorage.removeItem('appSettings');
-    setAppointments(initialAppointments);
-    setBeds(initialBeds);
-    setPatients(initialPatients);
     setDischargedPatientsForBilling([]);
     setBilledPatients([]);
     setSettings(initialSettings);
+    // To clear firestore, you would need to delete documents one by one.
+    // This is a complex operation and is omitted for this demo.
   };
 
 

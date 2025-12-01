@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
 import { AppProvider } from '@/hooks/use-app-context';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'HealthHub Rural',
@@ -22,17 +23,19 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=PT+Sans:wght@400;700&family=Source+Code+Pro:wght@400&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased">
-        <AppProvider>
-            <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-            >
-            {children}
-            <Toaster />
-            </ThemeProvider>
-        </AppProvider>
+        <FirebaseClientProvider>
+            <AppProvider>
+                <ThemeProvider
+                attribute="class"
+                defaultTheme="dark"
+                enableSystem
+                disableTransitionOnChange
+                >
+                {children}
+                <Toaster />
+                </ThemeProvider>
+            </AppProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );

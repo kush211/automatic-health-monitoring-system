@@ -57,7 +57,7 @@ export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, onC
       {appointments
         .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime())
         .map((appointment) => (
-        <Card key={appointment.appointmentId} className="hover:bg-muted/50 transition-colors">
+        <Card key={appointment.id} className="hover:bg-muted/50 transition-colors">
           <CardContent className="p-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-12 w-12">
@@ -77,7 +77,7 @@ export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, onC
             <div className="flex items-center gap-2">
                 {getStatusBadge(appointment.status)}
                 {appointment.status === 'Scheduled' && (
-                    <Button variant="outline" size="sm" onClick={() => onMarkAsArrived(appointment.appointmentId)}>
+                    <Button variant="outline" size="sm" onClick={() => onMarkAsArrived(appointment.id)}>
                         <Check className="mr-2 h-4 w-4 text-green-600" /> Mark as Arrived
                     </Button>
                 )}
@@ -108,7 +108,7 @@ export function AppointmentList({ appointments, onTransfer, onMarkAsArrived, onC
                                 <ArrowRightLeft className="mr-2 h-4 w-4" />
                                 <span>Transfer</span>
                             </DropdownMenuItem>
-                             <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={() => onCancel(appointment.appointmentId)}>
+                             <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={() => onCancel(appointment.id)}>
                                 <X className="mr-2 h-4 w-4" />
                                 <span>Cancel</span>
                             </DropdownMenuItem>

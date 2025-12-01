@@ -62,7 +62,7 @@ export default function AppointmentsPage() {
   const handleConfirmTransfer = (newDoctor: User) => {
     if (!selectedAppointment) return;
 
-    transferAppointment(selectedAppointment.appointmentId, newDoctor);
+    transferAppointment(selectedAppointment.id, newDoctor);
 
     handleCloseTransferModal();
 
@@ -74,7 +74,7 @@ export default function AppointmentsPage() {
 
   const handleMarkAsArrived = (appointmentId: string) => {
     updateAppointmentStatus(appointmentId, 'Arrived');
-    const appointment = appointments.find(app => app.appointmentId === appointmentId);
+    const appointment = appointments.find(app => app.id === appointmentId);
     if (!appointment) return;
     toast({
         title: 'Patient Arrived',
@@ -84,7 +84,7 @@ export default function AppointmentsPage() {
   
   const handleCancelAppointment = (appointmentId: string) => {
     updateAppointmentStatus(appointmentId, 'Cancelled');
-    const appointment = appointments.find(app => app.appointmentId === appointmentId);
+    const appointment = appointments.find(app => app.id === appointmentId);
      if (!appointment) return;
     toast({
       title: 'Appointment Cancelled',

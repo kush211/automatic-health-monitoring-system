@@ -270,7 +270,7 @@ export function ReceptionistDashboard() {
                   <TableBody>
                     {filteredAppointments.length > 0 ? (
                        filteredAppointments.map((app, index) => (
-                        <TableRow key={app.appointmentId}>
+                        <TableRow key={app.id}>
                             <TableCell>{mounted ? format(new Date(app.dateTime), 'h:mm a') : '--:-- --'}</TableCell>
                             <TableCell>
                                 <div className='flex items-center gap-3'>
@@ -344,7 +344,7 @@ export function ReceptionistDashboard() {
             isOpen={isPrintTokenModalOpen}
             onClose={() => setIsPrintTokenModalOpen(false)}
             appointment={appointmentForToken}
-            queueNumber={todaysAppointments.findIndex(a => a.appointmentId === appointmentForToken.appointmentId) + 1}
+            queueNumber={todaysAppointments.findIndex(a => a.id === appointmentForToken.id) + 1}
         />
     )}
     </>
