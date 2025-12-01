@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { nurseUser } from "@/lib/data";
+import { demoUser, nurseUser } from "@/lib/data";
 
 export function LoginForm() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export function LoginForm() {
               type="email"
               placeholder="m@example.com"
               required
-              defaultValue="priya.sharma@example.com"
+              defaultValue={demoUser.email}
               className="bg-input border-0"
             />
           </div>
