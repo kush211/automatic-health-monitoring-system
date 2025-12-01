@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRef, useEffect, useState } from 'react';
@@ -11,9 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Stethoscope, Printer, User, Clock } from "lucide-react";
+import { Stethoscope, Printer } from "lucide-react";
 import type { Appointment } from '@/lib/types';
-import { useReactToPrint } from 'react-to-print';
 import { format } from 'date-fns';
 
 interface PrintTokenModalProps {
@@ -29,16 +29,45 @@ export function PrintTokenModal({
   appointment,
   queueNumber
 }: PrintTokenModalProps) {
-  const tokenRef = useRef(null);
+  const tokenRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
   
-  const handlePrint = useReactToPrint({
-    content: () => tokenRef.current,
-  });
+  const handlePrint = () => {
+    if (!tokenRef.current) return;
+    
+    const printContents = tokenRef.current.innerHTML;
+    const printWindow = window.open("", "_blank", "width=400,height=600");
+
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Appointment Token</title>
+            <style>
+              body { 
+                font-family: 'PT Sans', sans-serif; 
+                text-align: center;
+                padding: 20px;
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+              }
+              h2 { font-family: 'Playfair Display', serif; }
+              .text-primary { color: #388E3C; }
+              .text-muted-foreground { color: #555; }
+            </style>
+          </head>
+          <body>${printContents}</body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

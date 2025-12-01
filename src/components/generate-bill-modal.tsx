@@ -2,7 +2,6 @@
 "use client";
 
 import { useRef, useEffect, useState } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import {
   Dialog,
   DialogContent,
@@ -45,7 +44,7 @@ export function GenerateBillModal({
   patient,
   onBillGenerated
 }: GenerateBillModalProps) {
-  const billRef = useRef(null);
+  const billRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [billItems, setBillItems] = useState<BillItem[]>([]);
   const [subtotal, setSubtotal] = useState(0);
@@ -53,9 +52,43 @@ export function GenerateBillModal({
   const [isLoading, setIsLoading] = useState(true);
   const [insuranceAdjustment, setInsuranceAdjustment] = useState(-20000); 
 
-  const handlePrint = useReactToPrint({
-    content: () => billRef.current,
-  });
+  const handlePrint = () => {
+    if (!billRef.current) return;
+
+    const printContents = billRef.current.innerHTML;
+    const printWindow = window.open("", "_blank", "width=800,height=600");
+  
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Print Bill</title>
+             <style>
+              body { 
+                font-family: 'PT Sans', sans-serif; 
+                padding: 20px; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+              }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
+              th { font-weight: bold; }
+              .text-right { text-align: right; }
+              .font-bold { font-weight: bold; }
+              .text-primary { color: #388E3C; }
+              .text-muted-foreground { color: #555; }
+              .text-lg { font-size: 1.125rem; }
+              .bg-muted-50 { background-color: #F1F8E9; }
+            </style>
+          </head>
+          <body>${printContents}</body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;

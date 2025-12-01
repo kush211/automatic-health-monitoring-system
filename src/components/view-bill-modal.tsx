@@ -2,7 +2,6 @@
 "use client";
 
 import { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import {
   Dialog,
   DialogContent,
@@ -38,11 +37,45 @@ export function ViewBillModal({
   onClose,
   bill,
 }: ViewBillModalProps) {
-  const billRef = useRef(null);
+  const billRef = useRef<HTMLDivElement>(null);
 
-  const handlePrint = useReactToPrint({
-    content: () => billRef.current,
-  });
+  const handlePrint = () => {
+    if (!billRef.current) return;
+
+    const printContents = billRef.current.innerHTML;
+    const printWindow = window.open("", "_blank", "width=800,height=600");
+  
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Print Bill</title>
+            <style>
+              body { 
+                font-family: 'PT Sans', sans-serif; 
+                padding: 20px; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+              }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
+              th { font-weight: bold; }
+              .text-right { text-align: right; }
+              .font-bold { font-weight: bold; }
+              .text-primary { color: #388E3C; }
+              .text-muted-foreground { color: #555; }
+              .text-lg { font-size: 1.125rem; }
+              .bg-muted-50 { background-color: #F1F8E9; }
+            </style>
+          </head>
+          <body>${printContents}</body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -113,7 +146,7 @@ export function ViewBillModal({
                             <TableCell colSpan={3} className="text-right">Insurance Adjustment</TableCell>
                             <TableCell className="text-right text-green-600">₹{bill.insuranceAdjustment.toFixed(2)}</TableCell>
                         </TableRow>
-                         <TableRow className="text-lg font-bold bg-muted/50">
+                         <TableRow className="text-lg font-bold bg-muted-50">
                             <TableCell colSpan={3} className="text-right">Total Due</TableCell>
                             <TableCell className="text-right">₹{bill.totalDue.toFixed(2)}</TableCell>
                         </TableRow>

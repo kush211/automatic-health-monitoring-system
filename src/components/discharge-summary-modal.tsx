@@ -2,7 +2,6 @@
 "use client";
 
 import { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import {
   Dialog,
   DialogContent,
@@ -33,11 +32,44 @@ export function DischargeSummaryModal({
   isLoading,
   onConfirmDischarge,
 }: DischargeSummaryModalProps) {
-  const summaryRef = useRef(null);
+  const summaryRef = useRef<HTMLDivElement>(null);
 
-  const handlePrint = useReactToPrint({
-    content: () => summaryRef.current,
-  });
+  const handlePrint = () => {
+    if (!summaryRef.current) return;
+
+    const printContents = summaryRef.current.innerHTML;
+    const printWindow = window.open("", "_blank", "width=800,height=600");
+
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Discharge Summary</title>
+             <style>
+              body { 
+                font-family: 'PT Sans', sans-serif; 
+                padding: 20px; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+              }
+              h1, h3 { font-family: 'Playfair Display', serif; }
+              p { color: #555; }
+              strong { color: #000; }
+              .border-y { border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; }
+              .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+              .border-b { border-bottom: 1px solid #ddd; }
+              .pb-1 { padding-bottom: 0.25rem; }
+              .whitespace-pre-wrap { white-space: pre-wrap; }
+            </style>
+          </head>
+          <body>${printContents}</body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
