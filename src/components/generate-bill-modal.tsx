@@ -27,6 +27,7 @@ import {
 import { FileText, Printer, CheckCircle, Stethoscope } from "lucide-react";
 import type { Patient } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { BillableServices } from '@/lib/services';
 
 interface GenerateBillModalProps {
   isOpen: boolean;
@@ -35,19 +36,31 @@ interface GenerateBillModalProps {
   onBillGenerated: (patientId: string) => void;
 }
 
-// Mock data for the bill
-const billItems = [
-    { service: "Doctor Consultation", qty: 2, unitPrice: 500, total: 1000 },
-    { service: "ICU Bed Charges (5 days)", qty: 5, unitPrice: 8000, total: 40000 },
-    { service: "Coronary Angioplasty", qty: 1, unitPrice: 150000, total: 150000 },
-    { service: "Lipid Profile Test", qty: 1, unitPrice: 1200, total: 1200 },
-    { service: "Medication: Atorvastatin", qty: 30, unitPrice: 20, total: 600 },
-    { service: "Medication: Aspirin", qty: 30, unitPrice: 5, total: 150 },
-];
+// Mock function to get charges for a patient
+const getPatientCharges = (patient: Patient) => {
+    // In a real app, this would come from a database of services rendered.
+    // For now, we'll create a sample charge sheet based on the mock data.
+    const items = [
+        { service: BillableServices['icu_stay'], qty: 5 },
+        { service: BillableServices['consult_fee'], qty: 2 },
+        { service: BillableServices['angioplasty'], qty: 1 },
+        { service: BillableServices['lipid_profile'], qty: 1 },
+        { service: BillableServices['med_atorvastatin'], qty: 30 },
+        { service: BillableServices['med_aspirin'], qty: 30 },
+    ];
+    
+    const billItems = items.map(item => ({
+        ...item.service,
+        qty: item.qty,
+        total: item.service.unitPrice * item.qty,
+    }));
 
-const subtotal = billItems.reduce((acc, item) => acc + item.total, 0);
-const insuranceAdjustment = -20000;
-const totalDue = subtotal + insuranceAdjustment;
+    const subtotal = billItems.reduce((acc, item) => acc + item.total, 0);
+    const insuranceAdjustment = -20000; // Mock adjustment
+    const totalDue = subtotal + insuranceAdjustment;
+
+    return { billItems, subtotal, insuranceAdjustment, totalDue };
+}
 
 
 export function GenerateBillModal({
@@ -58,6 +71,8 @@ export function GenerateBillModal({
 }: GenerateBillModalProps) {
   const billRef = useRef(null);
   const { toast } = useToast();
+  
+  const { billItems, subtotal, insuranceAdjustment, totalDue } = getPatientCharges(patient);
 
   const handlePrint = () => {
     if (billRef.current) {
@@ -143,7 +158,7 @@ export function GenerateBillModal({
                     <TableBody>
                         {billItems.map((item, index) => (
                             <TableRow key={index}>
-                                <TableCell className="font-medium">{item.service}</TableCell>
+                                <TableCell className="font-medium">{item.name}</TableCell>
                                 <TableCell>{item.qty}</TableCell>
                                 <TableCell>₹{item.unitPrice.toFixed(2)}</TableCell>
                                 <TableCell className="text-right">₹{item.total.toFixed(2)}</TableCell>
@@ -192,4 +207,3 @@ export function GenerateBillModal({
     </Dialog>
   );
 }
-
