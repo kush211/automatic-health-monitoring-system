@@ -9,9 +9,9 @@ import {
   Users,
   Bed,
   Calendar,
-  LogOut,
   LifeBuoy,
   UserCircle,
+  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
@@ -38,7 +38,7 @@ const bottomMenuItems = [
     { href: "/support", label: "Help/Support", icon: LifeBuoy },
 ]
 
-export function DashboardSidebar() {
+export function NurseSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const isActive = (href: string) => pathname.startsWith(href) && (href !== '/dashboard' || pathname === '/dashboard');

@@ -15,11 +15,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { TransferAppointmentModal } from '@/components/transfer-appointment-modal';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function AppointmentsPage() {
   // mark when client has mounted to avoid server/client formatting mismatch
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const { role } = useAuth();
 
   // keep the same initial date (deterministic)
   const [date, setDate] = useState<Date | undefined>(new Date('2024-07-28T00:00:00Z'));
@@ -34,19 +36,21 @@ export default function AppointmentsPage() {
     setMounted(true);
   }, []);
 
-  // stable list of doctor's appointments (filter by id)
-  const doctorAppointments = useMemo(
-    () => appointments.filter((app) => app.doctorId === demoUser.uid),
-    [appointments]
+  const loggedInUser = role === 'Doctor' ? demoUser : (role === 'Nurse' ? require('@/lib/data').nurseUser : null);
+
+  // stable list of user's appointments (filter by id)
+  const userAppointments = useMemo(
+    () => appointments.filter((app) => loggedInUser && app.doctorId === loggedInUser.uid),
+    [appointments, loggedInUser]
   );
 
   // appointments for the currently selected date (stable filtering)
   const appointmentsForSelectedDate = useMemo(
     () =>
-      doctorAppointments.filter((appointment) =>
+      userAppointments.filter((appointment) =>
         isSameDay(new Date(appointment.dateTime), date || new Date())
       ),
-    [doctorAppointments, date]
+    [userAppointments, date]
   );
 
   const handleOpenTransferModal = (appointment: Appointment) => {
@@ -91,19 +95,13 @@ export default function AppointmentsPage() {
   // Safe formatted date only after mount (prevents server/client mismatch)
   const formattedSelectedDate = useMemo(() => {
     if (!mounted) return null;
-    return date
-      ? date.toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
-      : new Date().toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
+    const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    };
+    return (date || new Date()).toLocaleDateString('en-US', options);
   }, [mounted, date]);
 
   const descriptionText = useMemo(() => {
@@ -121,10 +119,12 @@ export default function AppointmentsPage() {
             <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
             <p className="text-muted-foreground">Manage your patient appointments and schedule.</p>
           </div>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Appointment
-          </Button>
+          {role !== 'Nurse' && (
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Appointment
+            </Button>
+          )}
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 flex-1 min-h-0">
@@ -169,7 +169,7 @@ export default function AppointmentsPage() {
           onClose={handleCloseTransferModal}
           onConfirmTransfer={handleConfirmTransfer}
           appointment={selectedAppointment}
-          doctors={doctors.filter((d) => d.uid !== demoUser.uid)}
+          doctors={doctors.filter((d) => loggedInUser && d.uid !== loggedInUser.uid)}
         />
       )}
     </>
