@@ -5,20 +5,27 @@ import {
   SidebarProvider,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/dashboard-sidebar";
-import { NurseSidebar } from "@/components/nurse-sidebar";
-import { ReceptionistSidebar } from "@/components/receptionist-sidebar";
+import { AdminSidebar } from "@/components/admin-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AdminSidebar } from "@/components/admin-sidebar";
+import { AppProvider } from "@/hooks/use-app-context";
+import { redirect, usePathname } from "next/navigation";
+import { useEffect } from "react";
 
-export default function AppLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { role, isLoading } = useAuth();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!isLoading && role !== 'Admin' && pathname !== '/admin/login') {
+        redirect('/admin/login');
+    }
+  }, [isLoading, role, pathname]);
 
   if (isLoading) {
     return (
@@ -48,23 +55,13 @@ export default function AppLayout({
     );
   }
   
-  const renderSidebar = () => {
-    switch (role) {
-        case 'Doctor':
-            return <DashboardSidebar />;
-        case 'Nurse':
-            return <NurseSidebar />;
-        case 'Receptionist':
-            return <ReceptionistSidebar />;
-        default:
-            return null;
-    }
+  if (role !== 'Admin') {
+    return null;
   }
-
 
   return (
       <SidebarProvider>
-        {renderSidebar()}
+        <AdminSidebar />
         <SidebarInset>
           <div className="flex min-h-screen w-full flex-col overflow-hidden">
             <DashboardHeader />
