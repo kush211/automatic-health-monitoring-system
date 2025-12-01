@@ -12,6 +12,7 @@ import {
   UserCircle,
   Settings,
   Shield,
+  SlidersHorizontal,
 } from "lucide-react";
 import {
   Sidebar,
@@ -29,7 +30,7 @@ import { useAuth } from "@/hooks/use-auth";
 const menuItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/users", label: "User Management", icon: Users },
-  { href: "/admin/settings", label: "System Settings", icon: Settings },
+  { href: "/admin/settings", label: "System Settings", icon: SlidersHorizontal },
   { href: "/admin/security", label: "Security Logs", icon: Shield },
 ];
 
