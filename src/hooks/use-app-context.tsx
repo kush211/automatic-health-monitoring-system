@@ -170,12 +170,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
     }
 
-  const transferAppointment = (appointmentId: string, newDoctor: User) => {
+  const transferAppointment = async (appointmentId: string, newDoctor: User) => {
     if (!firestore) return;
-    const appointmentRef = doc(firestore, 'appointments', appointmentId);
-    updateDoc(appointmentRef, {
-        doctorId: newDoctor.uid,
-        doctorName: newDoctor.name,
+
+    const appointment = appointments.find(
+      a => a.id === appointmentId || a.appointmentId === appointmentId
+    );
+
+    if (!appointment) {
+      console.error("transferAppointment: Appointment not found:", appointmentId);
+      return;
+    }
+    
+    const firestoreDocId = appointment.id;
+    if (!firestoreDocId) {
+      console.error("transferAppointment: Missing Firestore doc id:", appointment);
+      return;
+    }
+
+    const appointmentRef = doc(firestore, "appointments", firestoreDocId);
+
+    await updateDoc(appointmentRef, {
+      doctorId: newDoctor.uid,
+      doctorName: newDoctor.name,
     });
   };
 
@@ -215,7 +232,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const appointmentRef = doc(firestore, "appointments", String(docId));
         await updateDoc(appointmentRef, { status });
         // optionally update local state (optimistic)
-        setAppointments(prev => prev.map(a => (a.id === appointment.id || a.appointmentId === appointment.appointmentId) ? { ...a, status } : a));
+        setAppointments(prev => prev.map(a => (a.id === appointment.id || a.appointmentId === appointment.id) ? { ...a, status } : a));
       } catch (err) {
         console.error("updateAppointmentStatus error:", err);
       }
@@ -417,5 +434,3 @@ export function useAppContext() {
   }
   return context;
 }
-
-    

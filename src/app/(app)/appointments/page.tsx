@@ -60,8 +60,8 @@ export default function AppointmentsPage() {
   };
 
   const handleConfirmTransfer = (newDoctor: User) => {
-    if (!selectedAppointment) return;
-
+    if (!selectedAppointment || !selectedAppointment.id) return;
+    
     transferAppointment(selectedAppointment.id, newDoctor);
 
     handleCloseTransferModal();
