@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/hooks/use-app-context';
-import { doctors } from '@/lib/data';
+import { allUsers } from '@/lib/data';
 import type { Patient, User as UserType } from '@/lib/types';
 
 export default function BookAppointmentPage() {
@@ -25,6 +25,8 @@ export default function BookAppointmentPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isBooking, setIsBooking] = useState(false);
+
+  const doctors = allUsers.filter(u => u.role === 'Doctor');
 
   const availableTimeSlots = [
     '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM',

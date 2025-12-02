@@ -42,7 +42,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppContext } from '@/hooks/use-app-context';
 import { isSameDay, getHours } from 'date-fns';
-import { doctors } from '@/lib/data';
+import { allUsers } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns-tz';
 import { useRouter } from 'next/navigation';
@@ -64,6 +64,8 @@ export function ReceptionistDashboard() {
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
   const [isPrintTokenModalOpen, setIsPrintTokenModalOpen] = useState(false);
   const [appointmentForToken, setAppointmentForToken] = useState<Appointment | null>(null);
+
+  const doctors = allUsers.filter(u => u.role === 'Doctor');
 
   useEffect(() => {
     setMounted(true);
@@ -141,7 +143,7 @@ export function ReceptionistDashboard() {
         queueCount: queue.length
       }
     })
-  }, [todaysAppointments]);
+  }, [todaysAppointments, doctors]);
 
   const getStatusBadge = (status: 'Scheduled' | 'Arrived' | 'Completed' | 'Cancelled') => {
     switch (status) {
@@ -270,7 +272,7 @@ export function ReceptionistDashboard() {
                   <TableBody>
                     {filteredAppointments.length > 0 ? (
                        filteredAppointments.map((app, index) => (
-                        <TableRow key={app.appointmentId}>
+                        <TableRow key={app.id ?? app.appointmentId}>
                             <TableCell>{mounted ? format(new Date(app.dateTime), 'h:mm a') : '--:-- --'}</TableCell>
                             <TableCell>
                                 <div className='flex items-center gap-3'>

@@ -4,7 +4,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Appointment, Bed, Bill, Patient, User, AppSettings, BillItem } from '@/lib/types';
-import { initialPatients, doctors, appointments as initialAppointments } from '@/lib/data';
+import { initialPatients, doctors as mockDoctors, appointments as initialAppointments, allUsers } from '@/lib/data';
 import { useUser, useMemoFirebase } from '@/firebase';
 import { collection, doc, updateDoc, writeBatch, getDocs, onSnapshot, query, orderBy, getDoc, addDoc, getFirestore, setDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
@@ -272,8 +272,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   
     try {
-      const patientId = `PID-${patients.length + initialPatients.length + 1}-${new Date().getFullYear()}`;
-      const primaryDoctor = doctors.find(d => d.uid === payload.primaryDoctorId);
+      const patientId = `PID-${patients.length + 1}-${new Date().getFullYear()}`;
+      const primaryDoctor = allUsers.find(d => d.uid === payload.primaryDoctorId);
   
       const newPatientData: Omit<Patient, 'id'> = {
         ...payload,
@@ -292,6 +292,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       
       const newPatientWithId: Patient = { id: docRef.id, ...newPatientData };
 
+      // Optimistic update
       setPatients(prev => [newPatientWithId, ...prev]);
   
       toast({

@@ -23,7 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserCheck, Stethoscope } from "lucide-react";
 import type { Patient, User } from "@/lib/types";
-import { doctors } from "@/lib/data";
+import { allUsers } from "@/lib/data";
 import { useAppContext } from "@/hooks/use-app-context";
 import { useToast } from "@/hooks/use-toast";
 
@@ -42,6 +42,8 @@ export function WalkInCheckInModal({
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<User | null>(null);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
+
+  const doctors = allUsers.filter(u => u.role === 'Doctor');
 
   const handleCheckIn = async () => {
     if (!selectedPatient || !selectedDoctor) {

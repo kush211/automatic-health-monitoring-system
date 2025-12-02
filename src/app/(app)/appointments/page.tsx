@@ -8,7 +8,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AppointmentList } from '@/components/appointment-list';
-import { doctors } from '@/lib/data';
+import { allUsers } from '@/lib/data';
 import type { Appointment, User } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
@@ -23,6 +23,8 @@ export default function AppointmentsPage() {
   const { user, role } = useAuth();
   const { appointments, transferAppointment, updateAppointmentStatus } = useAppContext();
   const { toast } = useToast();
+
+  const doctors = allUsers.filter(u => u.role === 'Doctor');
 
   const [date, setDate] = useState<Date | undefined>(new Date('2024-07-28T00:00:00Z'));
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);

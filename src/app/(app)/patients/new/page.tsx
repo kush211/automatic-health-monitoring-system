@@ -12,13 +12,15 @@ import { UserPlus, Calendar, Phone, Home, User as UserIcon, VenusMars } from 'lu
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/hooks/use-app-context';
 import type { Patient } from '@/lib/types';
-import { doctors } from '@/lib/data';
+import { allUsers } from '@/lib/data';
 
 export default function NewPatientPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { addPatient } = useAppContext();
   const [isSaving, setIsSaving] = useState(false);
+
+  const doctors = allUsers.filter(u => u.role === 'Doctor');
 
   const [formData, setFormData] = useState({
     name: '',
