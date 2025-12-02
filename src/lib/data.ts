@@ -88,7 +88,7 @@ export const initialPatients: Patient[] = [
     address: "456, Park Avenue, Mumbai",
     primaryDoctorId: "doc1",
     primaryDoctorName: "Dr. Priya Sharma",
-    consent_for_ai: false,
+    consent_for_ai: true,
     avatarUrl: "https://picsum.photos/seed/patient2/100/100",
     createdAt: "2024-02-15T11:00:00Z",
     updatedAt: "2024-05-21T09:00:00Z",
