@@ -219,9 +219,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         // find appointment in local state - adapt field name to your structure
         // some projects use `id` as doc id, others `appointmentId` — check which one your data has
-        const appointment = appointments.find(a => a.id === appointmentId || a.appointmentId === appointmentId);
+        const appointment = appointments.find(a => a.id === appointmentId);
         if (!appointment) {
-          console.warn("No appointment found for id:", appointmentId, "search used id and appointmentId fields");
+          console.warn("No appointment found for id:", appointmentId, "search used id field");
           return;
         }
     
@@ -233,8 +233,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
     
         // pick the correct doc id for Firestore:
-        // prefer document id (appointment.id) if present, else fallback to appointment.appointmentId
-        const docId = appointment.id ?? appointment.appointmentId;
+        // prefer document id (appointment.id) if present
+        const docId = appointment.id;
         if (!docId) {
           console.error("No document id available on appointment:", appointment);
           return;
@@ -243,7 +243,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const appointmentRef = doc(firestore, "appointments", String(docId));
         await updateDoc(appointmentRef, { status });
         // optionally update local state (optimistic)
-        setAppointments(prev => prev.map(a => (a.id === appointment.id || a.appointmentId === appointment.id) ? { ...a, status } : a));
+        setAppointments(prev => prev.map(a => a.id === appointment.id ? { ...a, status } : a));
       } catch (err) {
         console.error("updateAppointmentStatus error:", err);
       }
