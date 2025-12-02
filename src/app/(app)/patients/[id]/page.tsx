@@ -198,15 +198,40 @@ export default function PatientDetailPage() {
     notFound();
   }
 
-  const mockMedicalHistory = `
-      Patient Name: ${patient.name}
-      Date of Birth: ${patient.dob}
-      Gender: ${patient.gender}
-      Past Medical History: Hypertension, Diabetes Mellitus.
-      Current Symptoms: Severe, crushing chest pain (10/10 intensity) radiating to the left arm and jaw. Associated symptoms include diaphoresis, shortness of breath, and nausea.
-      Vitals: BP 160/100, HR 110, RR 22, SpO2 94% on room air.
-      Lab Reports: Lipid Profile - Total Cholesterol 240 mg/dL, LDL 160 mg/dL.
-    `;
+  const compileMedicalHistory = () => {
+    if (!patient) return "No patient data available.";
+
+    let historyText = `Patient Name: ${patient.name}\n`;
+    historyText += `Date of Birth: ${patient.dob}\n`;
+    historyText += `Gender: ${patient.gender}\n\n`;
+
+    historyText += "--- Medical Records ---\n";
+    if (medicalHistory.length > 0) {
+        medicalHistory.forEach(record => {
+            historyText += `Date: ${record.date}\n`;
+            historyText += `Diagnosis: ${record.diagnosis}\n`;
+            historyText += `Doctor: ${record.doctor}\n`;
+            historyText += `Notes: ${record.notes}\n`;
+            if (record.prescription) {
+                historyText += `Prescription: ${record.prescriptionDetails}\n`;
+            }
+            historyText += '---\n';
+        });
+    } else {
+        historyText += "No past medical records found.\n";
+    }
+
+    historyText += "\n--- Lab Reports ---\n";
+    if (labReports.length > 0) {
+        labReports.forEach(report => {
+            historyText += `Date: ${report.date}, Report: ${report.reportName}\n`;
+        });
+    } else {
+        historyText += "No lab reports found.\n";
+    }
+
+    return historyText;
+  };
 
   const handleRiskAnalysis = async (forceRegenerate = false) => {
     if (analysisResult && !forceRegenerate) {
@@ -219,7 +244,7 @@ export default function PatientDetailPage() {
 
     try {
       const result = await aiRiskAnalysis({
-        patientMedicalHistory: mockMedicalHistory,
+        patientMedicalHistory: compileMedicalHistory(),
         consentGiven: patient.consent_for_ai,
       });
       setAnalysisResult(result);
@@ -241,7 +266,7 @@ export default function PatientDetailPage() {
 
     try {
       const result = await generatePatientSummary({
-        patientHistory: mockMedicalHistory,
+        patientHistory: compileMedicalHistory(),
       });
       setSummaryResult(result);
     } catch (error) {
@@ -484,7 +509,7 @@ export default function PatientDetailPage() {
           onClose={() => setIsChatModalOpen(false)}
           patientId={patient.patientId}
           patientName={patient.name}
-          patientMedicalHistory={mockMedicalHistory}
+          patientMedicalHistory={compileMedicalHistory()}
         />
       )}
       {patient && (
@@ -532,8 +557,3 @@ export default function PatientDetailPage() {
     </div>
   );
 }
-
-    
-
-    
-
