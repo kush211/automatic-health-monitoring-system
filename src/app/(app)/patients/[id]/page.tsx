@@ -53,6 +53,7 @@ import { ViewLabReportModal } from '@/components/view-lab-report-modal';
 import { MedicalRecordDetailModal } from '@/components/medical-record-detail-modal';
 import { useAuth } from '@/hooks/use-auth';
 import { useAppContext } from '@/hooks/use-app-context';
+import { isToday } from 'date-fns';
 
 const initialMedicalHistory = [
   {
@@ -140,7 +141,7 @@ type LabReport = typeof initialLabReports[0];
 export default function PatientDetailPage() {
   const params = useParams();
   const { role } = useAuth();
-  const { settings, patients } = useAppContext();
+  const { settings, patients, appointments, updateAppointmentStatus } = useAppContext();
   const id = params.id as string;
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AIRiskAnalysisOutput | null>(null);
@@ -252,6 +253,19 @@ export default function PatientDetailPage() {
 
   const handleNewRecordAdded = (newRecord: any) => {
     setMedicalHistory(prevHistory => [newRecord, ...prevHistory]);
+
+    // After consultation, update appointment status to 'Completed'
+    const today = new Date();
+    const activeAppointment = appointments.find(
+      (app) =>
+        app.patientId === patient.patientId &&
+        app.status === 'Arrived' &&
+        isToday(new Date(app.dateTime))
+    );
+
+    if (activeAppointment) {
+      updateAppointmentStatus(activeAppointment.id, 'Completed');
+    }
   };
   
   const handleLabReportAdded = (newReport: LabReport) => {
@@ -522,3 +536,4 @@ export default function PatientDetailPage() {
     
 
     
+
