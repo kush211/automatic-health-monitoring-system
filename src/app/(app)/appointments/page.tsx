@@ -26,7 +26,7 @@ export default function AppointmentsPage() {
 
   const doctors = allUsers.filter(u => u.role === 'Doctor');
 
-  const [date, setDate] = useState<Date | undefined>(new Date('2024-07-28T00:00:00Z'));
+  const [date, setDate] = useState<Date | undefined>(new Date());
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
