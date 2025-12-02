@@ -4,7 +4,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Appointment, Bed, Bill, Patient, User, AppSettings, BillItem } from '@/lib/types';
-import { initialPatients, doctors as mockDoctors, appointments as initialAppointments, allUsers } from '@/lib/data';
+import { initialPatients, doctors as mockDoctors, allUsers } from '@/lib/data';
 import { useUser, useMemoFirebase } from '@/firebase';
 import { collection, doc, updateDoc, writeBatch, getDocs, onSnapshot, query, orderBy, getDoc, addDoc, getFirestore, setDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
@@ -474,3 +474,5 @@ export function useAppContext() {
   }
   return context;
 }
+
+    
